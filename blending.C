@@ -1,7 +1,7 @@
 #include "species_plots.h"
 
 
-void read_weight(const char* weightname, double (&weight)[151][6]){
+TH1F** read_weight(const char* weightname){
 //read off weighting between species
 double wt[60][7];
 
@@ -22,15 +22,39 @@ for(int i=0;i<60;i++){
 //6th: piminus
 //return wt;
 
-for(int ibin=1;ibin<=150;ibin++){
-    for(int ifile=0;ifile<6;ifile++){
-        if(ibin<=30){weight[ibin][ifile]=(wt[2*ibin-2][ifile+1]+wt[2*ibin-1][ifile+1])/2.0;}
-        else{weight[ibin][ifile]=wt[59][ifile+1];}
+TH1F** weights=(TH1F**)malloc(sizeof(TH1F*)*6);
+
+
+for(int ifile=0;ifile<6;ifile++){
+    weights[ifile]=new TH1F(Form("weight_%i",ifile),""species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max);
+    for(int ibin=1;ibin<=species_plots::pt_bins;ibin++){
+	double buff;
+        if(ibin<=30){buff=(wt[2*ibin-2][ifile+1]+wt[2*ibin-1][ifile+1])/2.0;}
+        else{buff=wt[59][ifile+1];}
+	weights[ifile]->SetBinContent(i,buff);
     }   
+}
+//Need to update this function for better interpolation
+
+
+return weights;
+
 }
 
 
+TH2F** augment(TH1F** wt1d){
+TH2F** augmented=(TH2F**)malloc(sizeof(TH2F*)*6);
+for(int ifile=0;ifile<6;ifile++){
+    augmented[ifile]=new TH1F(Form("augmented_weight_%i",ifile),"",species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max,species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max);
+    for(int ibin=1;ibin<=species_plots::pt_bins;ibin++){
+    	for(int jbin=1;jbin<species_plots::pt_bins;jbin++){
+	    double entry=wt1d[ifile]->GetBinContent(ibin);
+	    augmented[ifile]->SetBinContent(ibin,jbin,entry);
+	}
+    }
+}
 
+return augmented;
 }
 
 
@@ -41,8 +65,8 @@ void blending(
 		const string suffix="pt_mixed"
 ){
 
-double wt[151][6];
-read_weight(weightname,wt);
+//double wt[151][6];
+TH1F** wt=read_weight(weightname,wt);
 //for(int i=0;i<60;i++){ printf("%f\t%f\t%f\t%f\t%f\t%f\t%f\n",wt[i][0],wt[i][1],wt[i][2],wt[i][3],wt[i][4],wt[i][5],wt[i][6]); }
 
 std::vector<string> keyword_str={"proton","antiproton","kplus","kminus","piminus"};
@@ -78,7 +102,7 @@ for(int i=0;i<species_plots::lumi_bins;i++){
 		blended.gen_mc_pt[i][j][k]->SetBinContent(ibin,all_mc);
 		blended.match_mc_pt[i][j][k]->SetBinContent(ibin,all_match);
 		blended.reco_pt[i][j][k]->SetBinContent(ibin,all_reco);
-		blended.pt_efficiency[i][j][k]->SetBinContent(ibin,all_reco/all_mc);
+      		blended.pt_efficiency[i][j][k]->SetBinContent(ibin,all_reco/all_mc);
 		
 		for(int jbin=1;jbin<=species_plots::pt_bins;jbin++){
 		    double all_resp=0;

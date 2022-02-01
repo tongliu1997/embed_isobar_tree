@@ -30,6 +30,7 @@ public:
     ntrk_max=9.5;
 */
 public:
+    string namestr;
     bool is_new=false;
 
     TH1F* nmctrk_nontrans[lumi_bins][ea_bins][vz_bins];
@@ -63,8 +64,8 @@ int species_plots::pt_bins=150;
 double species_plots::pt_min=0;
 double species_plots::pt_max=30;
 int species_plots::ntrk_bins=10;
-double species_plots::ntrk_min=0;
-double species_plots::ntrk_max=9;
+double species_plots::ntrk_min=-0.5;
+double species_plots::ntrk_max=9.5;
 
 species_plots::species_plots(string inputname_str,string input_keyword,string name_keyword){
  /*       pt_bins=90;
@@ -83,6 +84,7 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
     }
     const char* inkey=input_keyword.c_str();
     const char* namekey=namekey_str.c_str();
+    namestr=namekey_str;
 	
     for(int i=0;i<lumi_bins;i++){
         for(int j=0;j<ea_bins;j++){
@@ -159,6 +161,7 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
 //It's put there to differentiate this constructor with the previous one
 //
 species_plots::species_plots(bool make_new_plots, const string keyword){
+    namestr=keyword;
     is_new=true;
     for(int i=0;i<lumi_bins;i++){
     	for(int j=0;j<ea_bins;j++){
@@ -203,7 +206,7 @@ void species_plots::scale(double factor){
 
 		reco_pt[i][j][k]->Scale(factor);
 		notrans_reco_pt[i][j][k]->Scale(factor);
-		pt_efficiency[i][j][k]->Scale(factor);
+//		pt_efficiency[i][j][k]->Scale(factor);
 		
 	    }
 	}
@@ -227,7 +230,13 @@ void species_plots::add(species_plots c1,double factor){
 
 		reco_pt[i][j][k]->Add(c1.reco_pt[i][j][k],factor);
 		notrans_reco_pt[i][j][k]->Add(c1.notrans_reco_pt[i][j][k],factor);
-		pt_efficiency[i][j][k]->Add(c1.pt_efficiency[i][j][k],factor);
+//		pt_efficiency[i][j][k]->Add(c1.pt_efficiency[i][j][k],factor);
+
+		pt_efficiency[i][j][k]=(TH1F*)reco_pt[i][j][k]->Clone();
+		pt_efficiency[i][j][k]->SetName(Form("pt_efficiency_%i_%i_%i_%s",i,j,k,namestr.c_str()));
+		pt_efficiency[i][j][k]->SetTitle(Form("pt_efficiency_%i_%i_%i",i,j,k));
+		pt_efficiency[i][j][k]->Divide(gen_mc_pt[i][j][k]);
+		
 		
 	    }
 	}

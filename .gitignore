@@ -1,0 +1,28 @@
+# ignore lists for git
+#
+#
+# Figure & outputs
+*.png
+*.pdf
+*.root
+*.log
+
+# Directories storing slurm output
+out-slurm/*
+
+# Local backup directories
+backup/
+
+# Raw output histograms
+out-data/*/*
+
+# Tree file lists
+lists/*
+
+# Object files
+obj/*
+
+#Plots
+plots/
+
+#Local test files
