@@ -4,9 +4,11 @@
 # Figure & outputs
 *.png
 *.pdf
-*.root
+/*.root
 *.log
 
+# .swp files
+.*.swp
 # Directories storing slurm output
 out-slurm/*
 
@@ -14,7 +16,7 @@ out-slurm/*
 backup/
 
 # Raw output histograms
-out-data/*/*
+/out-data/**/*.root
 
 # Tree file lists
 lists/*
