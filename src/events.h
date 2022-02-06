@@ -308,6 +308,7 @@ public :
    // Make friend functions to fill in the runs
    // i.e. friend void runLoop(events&, string);
    // TAG: start-friend-functions
+   friend void eff_phi(events&, string);
    friend void random_trk(events&, string);
    friend void test_loop(events&, string);
 

@@ -50,11 +50,11 @@ static int define_bin(double param,vector<double> bound){
 }
 
 using namespace std;
-void random_trk(events& dat, string _options) {
+void eff_phi(events& dat, string _options) {
     TH1::SetDefaultSumw2(true);
     TH2::SetDefaultSumw2(true);
 
-    cout << " Running fn \"random_trk\"" << endl;
+    cout << " Running fn \"eff_phi\"" << endl;
     istringstream options ( _options );
     int n_options = 0;
     string arg;
@@ -79,12 +79,12 @@ void random_trk(events& dat, string _options) {
     int ea_bins=ea_bound.size()-1;
     int vz_bins=vz_bound.size()-1;
     TH1F* nmctrk_nontrans[lumi_bins][ea_bins][vz_bins];
-    TH1F* match_mc_pt[lumi_bins][ea_bins][vz_bins];
-    TH2F* mc_reco_pt[lumi_bins][ea_bins][vz_bins];
-    TH1F* gen_mc_pt[lumi_bins][ea_bins][vz_bins];
-    TH1F* notrans_match_mc_pt[lumi_bins][ea_bins][vz_bins];
-    TH2F* notrans_mc_reco_pt[lumi_bins][ea_bins][vz_bins];
-    TH1F* notrans_gen_mc_pt[lumi_bins][ea_bins][vz_bins];
+    TH1F* match_mc_phi[lumi_bins][ea_bins][vz_bins];
+    TH2F* mc_reco_phi[lumi_bins][ea_bins][vz_bins];
+    TH1F* gen_mc_phi[lumi_bins][ea_bins][vz_bins];
+    TH1F* notrans_match_mc_phi[lumi_bins][ea_bins][vz_bins];
+    TH2F* notrans_mc_reco_phi[lumi_bins][ea_bins][vz_bins];
+    TH1F* notrans_gen_mc_phi[lumi_bins][ea_bins][vz_bins];
 //
 //The "notrans_" tag selects the near & recoil side MC tracks for effeciency study
 //
@@ -92,12 +92,12 @@ void random_trk(events& dat, string _options) {
 	for(int j=0;j<ea_bins;j++){
 	    for(int k=0;k<vz_bins;k++){
 		nmctrk_nontrans[i][j][k]=new TH1F(Form("nmctrk_nontrans_%i_%i_%i",i,j,k),"Number of MC tracks in the accepted region",ntrk_bin,ntrk_min,ntrk_max);
-		mc_reco_pt[i][j][k]=new TH2F(Form("mc_reco_pt_%i_%i_%i",i,j,k),"MC vs reco pt;MC pt;Reco pt",pt_bin,pt_min,pt_max,pt_bin,pt_min,pt_max);
-		match_mc_pt[i][j][k]=new TH1F(Form("match_mc_pt_%i_%i_%i",i,j,k),"Matched MC pt;MC pt;count",pt_bin,pt_min,pt_max);
-		gen_mc_pt[i][j][k]=new TH1F(Form("gen_mc_pt_%i_%i_%i",i,j,k),"Generated MC pt;MC pt;count",pt_bin,pt_min,pt_max);
-		notrans_mc_reco_pt[i][j][k]=new TH2F(Form("notrans_mc_reco_pt_%i_%i_%i",i,j,k),"MC vs reco pt;MC pt;Reco pt",pt_bin,pt_min,pt_max,pt_bin,pt_min,pt_max);
-		notrans_match_mc_pt[i][j][k]=new TH1F(Form("notrans_match_mc_pt_%i_%i_%i",i,j,k),"Matched MC pt;MC pt;count",pt_bin,pt_min,pt_max);
-		notrans_gen_mc_pt[i][j][k]=new TH1F(Form("notrans_gen_mc_pt_%i_%i_%i",i,j,k),"Generated MC pt;MC pt;count",pt_bin,pt_min,pt_max);
+		mc_reco_phi[i][j][k]=new TH2F(Form("mc_reco_phi_%i_%i_%i",i,j,k),"MC vs reco pt;MC pt;Reco pt",phi_bin,phi_min,phi_max,phi_bin,phi_min,phi_max);
+		match_mc_phi[i][j][k]=new TH1F(Form("match_mc_phi_%i_%i_%i",i,j,k),"Matched MC pt;MC pt;count",phi_bin,phi_min,phi_max);
+		gen_mc_phi[i][j][k]=new TH1F(Form("gen_mc_phi_%i_%i_%i",i,j,k),"Generated MC pt;MC pt;count",phi_bin,phi_min,phi_max);
+		notrans_mc_reco_phi[i][j][k]=new TH2F(Form("notrans_mc_reco_phi_%i_%i_%i",i,j,k),"MC vs reco pt;MC pt;Reco pt",phi_bin,phi_min,phi_max,phi_bin,phi_min,phi_max);
+		notrans_match_mc_phi[i][j][k]=new TH1F(Form("notrans_match_mc_phi_%i_%i_%i",i,j,k),"Matched MC pt;MC pt;count",phi_bin,phi_min,phi_max);
+		notrans_gen_mc_phi[i][j][k]=new TH1F(Form("notrans_gen_mc_phi_%i_%i_%i",i,j,k),"Generated MC pt;MC pt;count",phi_bin,phi_min,phi_max);
 	    }
 	}
     }
@@ -171,25 +171,26 @@ void random_trk(events& dat, string _options) {
  	if(debug_level) cout<<"Number of MC tracks is "<<nmctrk<<endl;
 	for(int i=0;i<nmctrk;i++){
 	    short mc_trk_id=dat.mc_track_id[i];
-	    float mc_pt=dat.mc_track_pt[i]; 
-	    gen_mc_pt[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_pt);
+	    float mc_pt=dat.mc_track_pt[i];
+	    float mc_phi=dat.mc_track_phi[i]; 
+	    gen_mc_phi[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_phi);
 	    bool mc_is_trans=is_phi_tran(phi_rantrig,dat.mc_track_phi[i]);
 	    if(debug_level > 2){
-		cout<<"Checkpoint 1 mc_pt is "<<mc_pt<<endl;
+		cout<<"Checkpoint 1 mc_phi is "<<mc_phi<<endl;
 		if(mc_is_trans)cout<<"Is transverse"<<endl;
 		else cout<<"Is not transverse"<<endl;
 	    }
-	    if(!mc_is_trans) notrans_gen_mc_pt[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_pt);
+	    if(!mc_is_trans) notrans_gen_mc_phi[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_phi);
 	    if(debug_level > 2)cout<<"Checkpoint 2"<<endl;
 	    if(mc_trk_id<0)continue;
 	    if(!(dat.track_pass_cuts[mc_trk_id] && (dat.track_nHitsFit[mc_trk_id] > 0.52*dat.track_nHitsPoss[mc_trk_id] )))continue;//
 //	    TH1F* gen_mc_pt[lumi_bins][ea_bins][vz_bins];
-	    float reco_pt=dat.track_pt[mc_trk_id];
-	    mc_reco_pt[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_pt,reco_pt);
-	    match_mc_pt[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_pt);
+	    float reco_phi=dat.track_phi[mc_trk_id];
+	    mc_reco_phi[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_phi,reco_phi);
+	    match_mc_phi[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_phi);
 	    if(!mc_is_trans){
-		notrans_mc_reco_pt[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_pt,reco_pt);
-		notrans_match_mc_pt[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_pt);
+		notrans_mc_reco_phi[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_phi,reco_phi);
+		notrans_match_mc_phi[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_phi);
 		nmctrack_nontrans++;
 	    }
 	}
@@ -203,12 +204,12 @@ void random_trk(events& dat, string _options) {
 	for(int j=0;j<ea_bins;j++){
 	    for(int k=0;k<vz_bins;k++){
 		nmctrk_nontrans[i][j][k]->Write();
-		mc_reco_pt[i][j][k]->Write();
-		match_mc_pt[i][j][k]->Write();
-		gen_mc_pt[i][j][k]->Write();
-		notrans_mc_reco_pt[i][j][k]->Write();
-		notrans_match_mc_pt[i][j][k]->Write();
-		notrans_gen_mc_pt[i][j][k]->Write();
+		mc_reco_phi[i][j][k]->Write();
+		match_mc_phi[i][j][k]->Write();
+		gen_mc_phi[i][j][k]->Write();
+		notrans_mc_reco_phi[i][j][k]->Write();
+		notrans_match_mc_phi[i][j][k]->Write();
+		notrans_gen_mc_phi[i][j][k]->Write();
 	    }
 	}
     }

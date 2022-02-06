@@ -28,3 +28,5 @@ obj/*
 plots/
 
 #Local test files
+int_test.sh
+test_files/

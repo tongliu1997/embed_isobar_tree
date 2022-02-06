@@ -26,12 +26,13 @@ TH1F** weights=(TH1F**)malloc(sizeof(TH1F*)*6);
 
 
 for(int ifile=0;ifile<6;ifile++){
-    weights[ifile]=new TH1F(Form("weight_%i",ifile),""species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max);
+    weights[ifile]=new TH1F(Form("weight_%i",ifile),"",species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max);
     for(int ibin=1;ibin<=species_plots::pt_bins;ibin++){
 	double buff;
         if(ibin<=30){buff=(wt[2*ibin-2][ifile+1]+wt[2*ibin-1][ifile+1])/2.0;}
         else{buff=wt[59][ifile+1];}
-	weights[ifile]->SetBinContent(i,buff);
+	weights[ifile]->SetBinContent(ibin,buff);
+	weights[ifile]->SetBinError(ibin,0);
     }   
 }
 //Need to update this function for better interpolation
@@ -45,11 +46,12 @@ return weights;
 TH2F** augment(TH1F** wt1d){
 TH2F** augmented=(TH2F**)malloc(sizeof(TH2F*)*6);
 for(int ifile=0;ifile<6;ifile++){
-    augmented[ifile]=new TH1F(Form("augmented_weight_%i",ifile),"",species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max,species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max);
+    augmented[ifile]=new TH2F(Form("augmented_weight_%i",ifile),"",species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max,species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max);
     for(int ibin=1;ibin<=species_plots::pt_bins;ibin++){
     	for(int jbin=1;jbin<species_plots::pt_bins;jbin++){
 	    double entry=wt1d[ifile]->GetBinContent(ibin);
 	    augmented[ifile]->SetBinContent(ibin,jbin,entry);
+	    augmented[ifile]->SetBinError(ibin,jbin,0);
 	}
     }
 }
@@ -60,28 +62,44 @@ return augmented;
 
 
 void blending(
-		const char* weightname="/home/tl543/embed_tree/species_weight.txt",
+		const char* weightname="species_weight.txt",
 		const char* input_key="out-data/hadd_random_trk",
 		const string suffix="pt_mixed"
 ){
 
 //double wt[151][6];
-TH1F** wt=read_weight(weightname,wt);
+TH1F** wt=read_weight(weightname);
+
+
+
+TH2F** wt_2d=augment(wt);
 //for(int i=0;i<60;i++){ printf("%f\t%f\t%f\t%f\t%f\t%f\t%f\n",wt[i][0],wt[i][1],wt[i][2],wt[i][3],wt[i][4],wt[i][5],wt[i][6]); }
 
-std::vector<string> keyword_str={"proton","antiproton","kplus","kminus","piminus"};
+
+
+TCanvas* c1=new TCanvas();
+c1->Divide(3,2);
+for(int i=0;i<6;i++){
+    c1->cd(i+1);
+    wt[i]->Draw();
+}
+
+
+std::vector<string> keyword_str={"proton","antiproton","kplus","kminus","piminus_2","piminus"};
 const int nspecies=keyword_str.size();
 species_plots* species[nspecies];
 for(int i=0;i<nspecies;i++){
 
-   const char* keyword=keyword_str[i].c_str();
-   string filename(Form("%s_%s.root",input_key,keyword));
-   if(suffix!="")filename=Form("%s_%s_%s.root",input_key,keyword,suffix.c_str());
+    const char* keyword=keyword_str[i].c_str();
+    string filename(Form("%s_%s.root",input_key,keyword));
+    if(suffix!="")filename=Form("%s_%s_%s.root",input_key,keyword,suffix.c_str());
    
+    if(keyword_str[i]=="piminus_2")
+     	species[i]=new species_plots(filename,"piminus_pt_mixed");
+    else species[i]=new species_plots(filename,Form("%s_%s",keyword,suffix.c_str()));
+    cout<<keyword_str[i]<<endl;
 
-
-   species[i]=new species_plots(filename,Form("%s_%s",keyword,suffix.c_str()));
-   
+    species[i]->normalize();  
    
 }
 //species_plots::pt_bins=150;
@@ -91,7 +109,16 @@ species_plots blended(true,"blended");
 for(int i=0;i<species_plots::lumi_bins;i++){
     for(int j=0;j<species_plots::ea_bins;j++){
 	for(int k=0;k<species_plots::vz_bins;k++){
-	    for(int ibin=1;ibin<=species_plots::pt_bins;ibin++){
+	    for(int ifile=0;ifile<nspecies;ifile++){
+		species[ifile]->gen_mc_pt[i][j][k]->Multiply(wt[ifile]);;
+	    	species[ifile]->match_mc_pt[i][j][k]->Multiply(wt[ifile]);
+	    	species[ifile]->reco_pt[i][j][k]->Multiply(wt[ifile]);
+		species[ifile]->mc_reco_pt[i][j][k]->Multiply(wt_2d[ifile]);
+	    }
+
+
+
+/*	    for(int ibin=1;ibin<=species_plots::pt_bins;ibin++){
 		double all_mc=0,all_match=0,all_reco=0;
 		for(int ifile=0;ifile<nspecies;ifile++){
 		if(ibin<=150){    
@@ -114,9 +141,16 @@ for(int i=0;i<species_plots::lumi_bins;i++){
 		}
 		
 	    }
+*/
+
 	}
     }
 }
+
+
+for(int ifile=0;ifile<nspecies;ifile++) blended.add(*species[ifile]);
+
+
 
 TFile* output = new TFile("isobar_trk_eff_ptmix_blend.root","recreate");
 
@@ -126,7 +160,6 @@ blended.write(output);
 
 
 output->Close();
-
 return;
 
 } 

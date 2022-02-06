@@ -3,6 +3,8 @@
 
 
 
+
+
 # The libraries for pythia, fastjet, and root ( "LIB_TRI" )
 # ccflg=-I${PYTHIA8}/include `${FASTJET3}/fastjet-config --cxxflags` `root-config --cflags`
 # ldflg=-L${PYTHIA8}/lib -lpythia8 `${FASTJET3}/fastjet-config --libs` `root-config --glibs`
@@ -29,7 +31,8 @@ bin/main: obj/events.o \
           obj/test_loop.o \
           obj/random_trk.o \
           obj/loc_funcs.o \
-          obj/common_funcs.o
+          obj/common_funcs.o \
+          obj/eff_phi.o
 	${CC} ${CFLAGS} -o $@ $^ ${LIB_DUO} 
 
 obj/events.o: src/events.cxx src/events.h src/lists.h
@@ -51,4 +54,7 @@ obj/loc_funcs.o: src/loc_funcs.cxx src/loc_funcs.h
 	${CC} ${CFLAGS} ${ccflg} -c $< -o $@
 
 obj/common_funcs.o: src/common_funcs.cxx src/common_funcs.h
+	${CC} ${CFLAGS} ${ccflg} -c $< -o $@
+
+obj/eff_phi.o: src/eff_phi.cxx src/events.h
 	${CC} ${CFLAGS} ${ccflg} -c $< -o $@

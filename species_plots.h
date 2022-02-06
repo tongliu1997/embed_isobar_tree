@@ -54,8 +54,14 @@ public:
     virtual ~species_plots();
     virtual void scale(double factor);
     virtual void add(species_plots c1,double factor=1);
+
+    double n_events();//This returns the SCALED number of events; i.e. if an event is scaled by 3 then it's counted as 3 events.
+    virtual void normalize();
+
+
     virtual void write(TFile* output);
     virtual void write(const string outname);
+
 
 };
 
@@ -119,7 +125,6 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
 		notrans_mc_reco_pt[i][j][k]->Sumw2();	
 		notrans_gen_mc_pt[i][j][k]->Sumw2();	
 		notrans_match_mc_pt[i][j][k]->Sumw2();	
-
 
 
                 reco_pt[i][j][k]=(TH1F*)mc_reco_pt[i][j][k]->ProjectionY();
@@ -244,6 +249,19 @@ void species_plots::add(species_plots c1,double factor){
     ZDCx_distribution->Add(c1.ZDCx_distribution,factor);
 }
 
+
+double species_plots::n_events(){
+
+    return ZDCx_distribution->Integral();
+
+
+}
+
+
+void species_plots::normalize(){
+     scale(1.0/n_events());
+
+}
 
 void species_plots::write(TFile* output){
     output->cd();

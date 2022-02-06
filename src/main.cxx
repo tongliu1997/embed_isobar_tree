@@ -19,8 +19,8 @@ int main(int nargs, char** argv) {
 
     int n_events          {  (nargs>1) ? atoi(argv[1]) : 100 };
     string inp_list       {  (nargs>2) ? argv[2] : "in-lists/list_test.list" };
-    string which_loop     {  (nargs>3) ? argv[3] : "random_trk" };
-    string o_name_tag     {  (nargs>4) ? argv[4] : "random_trk" };
+    string which_loop     {  (nargs>3) ? argv[3] : "eff_phi" };
+    string o_name_tag     {  (nargs>4) ? argv[4] : "eff_phi" };
     string which_system   {  (nargs>5) ? argv[5] : "Ru" };
     ostringstream collect;
     for (int i{6};i<nargs;++i) {
@@ -49,6 +49,8 @@ int main(int nargs, char** argv) {
     cout << " Looking for function: " << which_loop << endl;
     if (which_loop == "empty-loop") {
         // TAG: empty-loop
+   } else if (which_loop == "eff_phi") {
+        eff_phi(my_events, collect.str());
    } else if (which_loop == "random_trk") {
         random_trk(my_events, collect.str());
    } else if (which_loop == "test_loop") {

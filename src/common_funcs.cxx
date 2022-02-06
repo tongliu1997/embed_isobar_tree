@@ -27,7 +27,7 @@ double zdc_range[2]={0,20000};
 
 TH1F* trk_eff_lumi[4];
 TH1F* trk_eff_all;
-int lumi_edge[5]={0,8000,15000,23000,50000};
+//int lumi_edge[5]={0,8000,15000,23000,50000};
 
 void rand_seed(){
   ran_gen.SetSeed(0);

@@ -64,7 +64,7 @@ for(int ibin=0;ibin<stack_size;ibin++){
 	}
 
     }
-    eff_diff[ibin]=(TH1F*)gen_diff[ibin]->Clone();
+//    eff_diff[ibin]=(TH1F*)gen_diff[ibin]->Clone();
     eff_diff[ibin]=(TH1F*)reco_diff[ibin]->Clone();
     eff_diff[ibin]->Divide(gen_diff[ibin]);
     char* hist_name;
@@ -107,12 +107,24 @@ TH1F** eff_diff=embed_stack(filename,stack_dim,stack_bin,inkey,namekey);
 
 gStyle->SetOptStat(0);
 TCanvas* c1=new TCanvas("","",900,600);
-if(stack_dim==1)c1->Divide(3,2);
-if(stack_dim==2)c1->Divide(2,2);
+
+gStyle->SetPalette(kValentine);
+
+TLegend* lg=new TLegend(0.2,0.2,0.5,0.5);
+c1->cd();
+//if(stack_dim==1)c1->Divide(3,2);
+//if(stack_dim==2)c1->Divide(2,2);
 for(int i=0;i<stack_size;i++){
-    c1->cd(i+1);
-    eff_diff[i]->Draw();
+//    c1->cd(i+1);
+    eff_diff[i]->Draw("same PLC PLM");
+    lg->AddEntry(eff_diff[i]->GetTitle());
+
 }
+
+lg->Draw();
+
+
+
 return c1;
 
 

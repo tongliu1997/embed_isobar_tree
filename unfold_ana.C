@@ -30,13 +30,13 @@ for(int i=0;i<nstack;i++){
 
 TH1F** eff_stacked=embed_stack(embed_name,stack_dim,embed_stack_bin,keyword,keyword);
 
-const char* data_name="~/raghav_docker/out_root/Ru_output.root";
+const char* data_name="../raghav_docker/out_root/Ru_output.root";
 TFile* datafile=new TFile(data_name);
 TH2D* htrackpT_cent=(TH2D*)datafile->Get("htrackpT_cent");
 TH2D* hntrk_cent=(TH2D*)datafile->Get("hntrk_cent");
 
 const int nbins=29;
-Double_t xbins[nbins+1]={0,0.2,0.4,0.6,0.8,1,1.2,1.4,1.6,1.8,2.,2.2,2.4,2.6,2.8,3,3.4,3.8,4.4,5,6,7,8,9,10,12,15,20,25,30};
+Double_t xbins[nbins+1]={0,0.2,0.4,0.6,0.8,1,1.2,1.4,1.6,1.8,2.,2.2,2.4,2.6,2.8,3,3.4,3.8,4.4,5,6,7,8,9,10,12,15,18,25,30};
 TH1D* hpt_diff[nstack-1];
 TH1D* hpt_diff_rebin[nstack-1];
 TH1D* hpt_diff_unfold[nstack-1];
@@ -54,6 +54,7 @@ for(int i=0;i<nstack-1;i++){
     }
     hpt_diff[i]->Rebin(4);
     hpt_diff_rebin[i]=(TH1D*)hpt_diff[i]->Rebin(nbins,Form("hpt_diff_rebin_%i",i),xbins);
+//    hpt_diff_rebin[i]=(TH1D*)hpt_diff[i]->Clone();
 //    hpt_diff[i]->GetXaxis()->SetRange(1,25);
     hpt_diff_rebin[i]->Scale(1.0/evcoll[i],"width");
 
@@ -65,6 +66,7 @@ for(int i=0;i<nstack-1;i++){
     hpt_diff_unfold[i]->Divide(eff_stacked[i]);
     cout<<hpt_diff_unfold[i]->GetNbinsX()<<"\t"<<eff_stacked[i]->GetNbinsX()<<endl;
     hpt_diff_unfold_rebin[i]=(TH1D*)hpt_diff_unfold[i]->Rebin(nbins,Form("hpt_diff_unfold_rebin_%i",i),xbins);
+//    hpt_diff_unfold_rebin[i]=(TH1D*)hpt_diff_unfold[i]->Clone();
     hpt_diff_unfold_rebin[i]->Scale(1.0/evcoll[i],"width");
 }
 
@@ -77,6 +79,13 @@ for(int i=0;i<nstack-1;i++){
     hpt_diff_unfold_rebin[i]->Draw("same PLC PLM");
 //     eff_stacked[i]->Draw("same PLC PLM");
 }
+
+TLegend *lg=new TLegend();
+for(int i=0;i<nstack-1;i++){
+    lg->AddEntry(hpt_diff_unfold_rebin[i],Form("%i%%_%i%%",centrality[i+1],centrality[i]));
+
+}
+lg->Draw();
 cout<<evcoll[nstack-2]/nevts_diff[nstack-2]<<"\t"<<evcoll[0]/nevts_diff[0]<<endl;
 
 
@@ -85,6 +94,7 @@ c2->Draw();
 c2->cd();
 TH1D* hpt_ratio=(TH1D*)hpt_diff_rebin[nstack-2]->Clone();
 hpt_ratio->SetName("ratio");
+hpt_ratio->SetYTitle("R_{CP}");
 hpt_ratio->Divide(hpt_diff_rebin[0]);
 hpt_ratio->Draw();
 
@@ -93,5 +103,9 @@ hpt_unfold_ratio->SetName("unfolded ratio");
 hpt_unfold_ratio->Divide(hpt_diff_unfold_rebin[0]);
 hpt_unfold_ratio->SetLineColor(kRed);
 hpt_unfold_ratio->Draw("same");
+TLegend *lg1=new TLegend();
+lg1->AddEntry(hpt_ratio,"Raw");
+lg1->AddEntry(hpt_unfold_ratio,"Unfolded");
+lg1->Draw();
 
 }
