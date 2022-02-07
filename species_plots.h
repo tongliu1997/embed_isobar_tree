@@ -1,11 +1,17 @@
 #pragma once
-
+#include "src/loc_funcs.h"
 using namespace std;
 /*
  * Read in all the embedding plots from file or generate empty ones
  * Dimensions of plots defined at the bottom
  * 
  * */
+
+
+
+
+enum Observable {pt, phi} ;
+
 
 
 class species_plots{
@@ -15,9 +21,9 @@ public:
     static const int ea_bins=17;
     static const int vz_bins=4;
 
-    static int pt_bins;
-    static double pt_min;
-    static double pt_max;
+    static int obs_bins;
+    static double obs_min;
+    static double obs_max;
     static int ntrk_bins;
     static double ntrk_min;
     static double ntrk_max;
@@ -31,6 +37,7 @@ public:
 */
 public:
     string namestr;
+    Observable m_obs{pt};
     bool is_new=false;
 
     TH1F* nmctrk_nontrans[lumi_bins][ea_bins][vz_bins];
@@ -49,8 +56,8 @@ public:
 
     TH1F* ZDCx_distribution;
 
-    species_plots(string inputname_str,string input_keyword="",string name_keyword="");
-    species_plots(bool make_new_plots, const string keyword);
+    species_plots(string inputname_str,string input_keyword="",string name_keyword="",const string obs="pt");
+    species_plots(bool make_new_plots, const string keyword,const string obs="pt");
     virtual ~species_plots();
     virtual void scale(double factor);
     virtual void add(species_plots c1,double factor=1);
@@ -62,18 +69,39 @@ public:
     virtual void write(TFile* output);
     virtual void write(const string outname);
 
+private:
+
+    void set_bins();
+    
+
+
 
 };
 
 
-int species_plots::pt_bins=150;
-double species_plots::pt_min=0;
-double species_plots::pt_max=30;
+void species_plots::set_bins(){
+    switch(m_obs){
+	case pt:
+	    obs_bins=150;
+	    obs_min=0;
+	    obs_max=30;	    
+	    break;
+	case phi:
+	    obs_bins=96;
+	    obs_min=0;
+	    obs_max=TWO_PI;
+	    break;
+    }
+}
+
+int species_plots::obs_bins=150;
+double species_plots::obs_min=0;
+double species_plots::obs_max=30;
 int species_plots::ntrk_bins=10;
 double species_plots::ntrk_min=-0.5;
 double species_plots::ntrk_max=9.5;
 
-species_plots::species_plots(string inputname_str,string input_keyword,string name_keyword){
+species_plots::species_plots(string inputname_str,string input_keyword,string name_keyword,const string obs){
  /*       pt_bins=90;
         pt_min=0;
     	pt_max=18;
@@ -92,6 +120,13 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
     const char* namekey=namekey_str.c_str();
     namestr=namekey_str;
 	
+    if(obs=="pt")m_obs=pt;
+    if(obs=="phi")m_obs=phi;
+    
+    set_bins();
+
+    
+
     for(int i=0;i<lumi_bins;i++){
         for(int j=0;j<ea_bins;j++){
             for(int k=0;k<vz_bins;k++){
@@ -99,19 +134,19 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
 		const string in_token ( (input_keyword=="") ? Form("%i_%i_%i",i,j,k):Form("%i_%i_%i_%s",i,j,k,input_keyword.c_str()) );
 		const string name_token ( (namekey_str=="") ? Form("%i_%i_%i",i,j,k):Form("%i_%i_%i_%s",i,j,k,namekey_str.c_str()) ) ;
 
-                mc_reco_pt[i][j][k]=(TH2F*)inputfile->Get(Form("mc_reco_pt_%s",in_token.c_str()));
-	 	mc_reco_pt[i][j][k]->SetName(Form("mc_reco_pt_%s",name_token.c_str()));
-                gen_mc_pt[i][j][k]=(TH1F*)inputfile->Get(Form("gen_mc_pt_%s",in_token.c_str()));
-                gen_mc_pt[i][j][k]->SetName(Form("gen_mc_pt_%s",name_token.c_str()));
-                match_mc_pt[i][j][k]=(TH1F*)inputfile->Get(Form("match_mc_pt_%s",in_token.c_str()));
-                match_mc_pt[i][j][k]->SetName(Form("match_mc_pt_%s",name_token.c_str()));
+                mc_reco_pt[i][j][k]=(TH2F*)inputfile->Get(Form("mc_reco_%s_%s",obs.c_str(),in_token.c_str()));
+	 	mc_reco_pt[i][j][k]->SetName(Form("mc_reco_%s_%s",obs.c_str(),name_token.c_str()));
+                gen_mc_pt[i][j][k]=(TH1F*)inputfile->Get(Form("gen_mc_%s_%s",obs.c_str(),in_token.c_str()));
+                gen_mc_pt[i][j][k]->SetName(Form("gen_mc_%s_%s",obs.c_str(),name_token.c_str()));
+                match_mc_pt[i][j][k]=(TH1F*)inputfile->Get(Form("match_mc_%s_%s",obs.c_str(),in_token.c_str()));
+                match_mc_pt[i][j][k]->SetName(Form("match_mc_%s_%s",obs.c_str(),name_token.c_str()));
 
-                notrans_match_mc_pt[i][j][k]=(TH1F*)inputfile->Get(Form("notrans_match_mc_pt_%s",in_token.c_str()));
-                notrans_match_mc_pt[i][j][k]->SetName(Form("notrans_match_mc_pt_%s",name_token.c_str()));
-                notrans_mc_reco_pt[i][j][k]=(TH2F*)inputfile->Get(Form("notrans_mc_reco_pt_%s",in_token.c_str()));
-                notrans_mc_reco_pt[i][j][k]->SetName(Form("notrans_mc_reco_pt_%s",name_token.c_str()));
-                notrans_gen_mc_pt[i][j][k]=(TH1F*)inputfile->Get(Form("notrans_gen_mc_pt_%s",in_token.c_str()));
-                notrans_gen_mc_pt[i][j][k]->SetName(Form("notrans_gen_mc_pt_%s",name_token.c_str()));
+                notrans_match_mc_pt[i][j][k]=(TH1F*)inputfile->Get(Form("notrans_match_mc_%s_%s",obs.c_str(),in_token.c_str()));
+                notrans_match_mc_pt[i][j][k]->SetName(Form("notrans_match_mc_%s_%s",obs.c_str(),name_token.c_str()));
+                notrans_mc_reco_pt[i][j][k]=(TH2F*)inputfile->Get(Form("notrans_mc_reco_%s_%s",obs.c_str(),in_token.c_str()));
+                notrans_mc_reco_pt[i][j][k]->SetName(Form("notrans_mc_reco_%s_%s",obs.c_str(),name_token.c_str()));
+                notrans_gen_mc_pt[i][j][k]=(TH1F*)inputfile->Get(Form("notrans_gen_mc_%s_%s",obs.c_str(),in_token.c_str()));
+                notrans_gen_mc_pt[i][j][k]->SetName(Form("notrans_gen_mc_%s_%s",obs.c_str(),name_token.c_str()));
 
                 nmctrk_nontrans[i][j][k]=(TH1F*)inputfile->Get(Form("nmctrk_nontrans_%s",in_token.c_str()));
                 nmctrk_nontrans[i][j][k]->SetName(Form("nmctrk_nontrans_%s",name_token.c_str()));
@@ -146,10 +181,10 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
     ZDCx_distribution->Sumw2();
 
     if(1){
-	int ptx_nbins=mc_reco_pt[0][0][0]->GetNbinsX();
-	double ptx_min=mc_reco_pt[0][0][0]->GetXaxis()->GetBinLowEdge(1);
-	double ptx_max=mc_reco_pt[0][0][0]->GetXaxis()->GetBinLowEdge(ptx_nbins)+mc_reco_pt[0][0][0]->GetXaxis()->GetBinWidth(ptx_nbins);
-	if(ptx_nbins!=pt_bins || ptx_min != pt_min || ptx_max != pt_max )	cout<<"pt binning needs to be changed."<<endl;
+	int obsx_nbins=mc_reco_pt[0][0][0]->GetNbinsX();
+	double obsx_min=mc_reco_pt[0][0][0]->GetXaxis()->GetBinLowEdge(1);
+	double obsx_max=mc_reco_pt[0][0][0]->GetXaxis()->GetBinLowEdge(obsx_nbins)+mc_reco_pt[0][0][0]->GetXaxis()->GetBinWidth(obsx_nbins);
+	if(obsx_nbins!=obs_bins || obsx_min != obs_min || obsx_max != obs_max )	cout<<"obs binning needs to be changed."<<endl;
 	int ntrkx_nbins=nmctrk_nontrans[0][0][0]->GetNbinsX();
 	double ntrkx_min=nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinLowEdge(1);
 	double ntrkx_max=nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinLowEdge(ntrkx_nbins)+nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinWidth(ntrkx_nbins);
@@ -165,26 +200,30 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
 //The variable "make_new_plots" is not actually used
 //It's put there to differentiate this constructor with the previous one
 //
-species_plots::species_plots(bool make_new_plots, const string keyword){
+species_plots::species_plots(bool make_new_plots, const string keyword, const string obs){
     namestr=keyword;
+    if(obs=="pt")m_obs=pt;
+    if(obs=="phi")m_obs=phi;
     is_new=true;
     for(int i=0;i<lumi_bins;i++){
     	for(int j=0;j<ea_bins;j++){
             for(int k=0;k<vz_bins;k++){
-		mc_reco_pt[i][j][k]=new TH2F(Form("mc_reco_pt_%i_%i_%i_%s",i,j,k,keyword.c_str()),"",pt_bins,pt_min,pt_max,pt_bins,pt_min,pt_max);
-		gen_mc_pt[i][j][k]=new TH1F(Form("gen_mc_pt_%i_%i_%i_%s",i,j,k,keyword.c_str()),"",pt_bins,pt_min,pt_max);
-		match_mc_pt[i][j][k]=new TH1F(Form("match_mc_pt_%i_%i_%i_%s",i,j,k,keyword.c_str()),"",pt_bins,pt_min,pt_max);
-		notrans_match_mc_pt[i][j][k]=new TH1F(Form("notrans_match_mc_pt_%i_%i_%i_%s",i,j,k,keyword.c_str()),"",pt_bins,pt_min,pt_max);
+		const string name_token ( ( keyword =="") ? Form("%i_%i_%i",i,j,k):Form("%i_%i_%i_%s",i,j,k,keyword.c_str()) ) ;
 
-		notrans_mc_reco_pt[i][j][k]=new TH2F(Form("notrans_mc_reco_pt_%i_%i_%i_%s",i,j,k,keyword.c_str()),"",pt_bins,pt_min,pt_max,pt_bins,pt_min,pt_max);
-		notrans_gen_mc_pt[i][j][k]=new TH1F(Form("notrans_gen_mc_pt_%i_%i_%i_%s",i,j,k,keyword.c_str()),"",pt_bins,pt_min,pt_max);
+		mc_reco_pt[i][j][k]=new TH2F(Form("mc_reco_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max,obs_bins,obs_min,obs_max);
+		gen_mc_pt[i][j][k]=new TH1F(Form("gen_mc_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max);
+		match_mc_pt[i][j][k]=new TH1F(Form("match_mc_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max);
+		notrans_match_mc_pt[i][j][k]=new TH1F(Form("notrans_match_mc_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max);
+
+		notrans_mc_reco_pt[i][j][k]=new TH2F(Form("notrans_mc_reco_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max,obs_bins,obs_min,obs_max);
+		notrans_gen_mc_pt[i][j][k]=new TH1F(Form("notrans_gen_mc_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max);
 
 	   	nmctrk_nontrans[i][j][k]=new TH1F(Form("nmctrk_nontrans_%i_%i_%i_%s",i,j,k,keyword.c_str()),"",ntrk_bins,ntrk_min,ntrk_max); 
 
 
-		reco_pt[i][j][k]=new TH1F(Form("reco_pt_%i_%i_%i_%s",i,j,k,keyword.c_str()),"",pt_bins,pt_min,pt_max);
-		notrans_reco_pt[i][j][k]=new TH1F(Form("notrans_reco_pt_%i_%i_%i_%s",i,j,k,keyword.c_str()),"",pt_bins,pt_min,pt_max);
-		pt_efficiency[i][j][k]=new TH1F(Form("pt_efficiency_%i_%i_%i_%s",i,j,k,keyword.c_str()),"",pt_bins,pt_min,pt_max);
+		reco_pt[i][j][k]=new TH1F(Form("reco_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max);
+		notrans_reco_pt[i][j][k]=new TH1F(Form("notrans_reco_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max);
+		pt_efficiency[i][j][k]=new TH1F(Form("%s_efficiency_%i_%i_%i_%s",obs.c_str(),i,j,k,keyword.c_str()),"",obs_bins,obs_min,obs_max);
 		
             }
        	}
@@ -220,7 +259,9 @@ void species_plots::scale(double factor){
 }
 
 void species_plots::add(species_plots c1,double factor){
-    
+    string obs;
+    if(m_obs==pt) obs="pt";
+    if(m_obs==phi) obs="phi";
     for(int i=0;i<lumi_bins;i++){
 	for(int j=0;j<ea_bins;j++){
 	    for(int k=0;k<vz_bins;k++){
@@ -238,8 +279,8 @@ void species_plots::add(species_plots c1,double factor){
 //		pt_efficiency[i][j][k]->Add(c1.pt_efficiency[i][j][k],factor);
 
 		pt_efficiency[i][j][k]=(TH1F*)reco_pt[i][j][k]->Clone();
-		pt_efficiency[i][j][k]->SetName(Form("pt_efficiency_%i_%i_%i_%s",i,j,k,namestr.c_str()));
-		pt_efficiency[i][j][k]->SetTitle(Form("pt_efficiency_%i_%i_%i",i,j,k));
+		pt_efficiency[i][j][k]->SetName(Form("%s_efficiency_%i_%i_%i_%s",obs.c_str(),i,j,k,namestr.c_str()));
+		pt_efficiency[i][j][k]->SetTitle(Form("%s_efficiency_%i_%i_%i",obs.c_str(),i,j,k));
 		pt_efficiency[i][j][k]->Divide(gen_mc_pt[i][j][k]);
 		
 		

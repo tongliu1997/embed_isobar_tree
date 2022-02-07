@@ -18,10 +18,11 @@ const char* filename="out-data/hadd_random_trk_proton.root",
 int stack_dim=2,
 std::vector<int> stack_bin={0,1,2,3,4},
 string inkey_str="",
-string namekey_str="proton"
+string namekey_str="proton",
+string obs="pt"
 ){
 cout<<"Inkey is "<<inkey_str<<endl;
-species_plots species(filename,inkey_str,namekey_str);
+species_plots species(filename,inkey_str,namekey_str,obs);
 
 int stack_size=stack_bin.size()-1;
 TH1F* gen_diff[stack_size];
@@ -85,12 +86,15 @@ return eff_diff;
 }
 
 TCanvas* embed_species(
-//const char* inputname="noembed_random_trk_proton.root"
+const char* filename="noembed_random_trk_proton.root",
 string keyword_str="proton",
 int stack_dim=2,
 string inkey="",
-string namekey="proton"
+string namekey="proton",
+string obs="pt"
 ){
+
+
 
 std::vector<int> stack_bin;
 if(stack_dim==0)stack_bin={0,1};
@@ -100,10 +104,10 @@ int stack_size=stack_bin.size()-1;
 
 const char* keyword=keyword_str.c_str();
 //const char* filename=Form("out-data/hadd_random_trk_%s.root",keyword);
-const char* filename="isobar_trk_eff_ptmix_blend.root";
+//const char* filename="eff_phi_piplus.root";
 
 
-TH1F** eff_diff=embed_stack(filename,stack_dim,stack_bin,inkey,namekey);
+TH1F** eff_diff=embed_stack(filename,stack_dim,stack_bin,inkey,namekey,obs);
 
 gStyle->SetOptStat(0);
 TCanvas* c1=new TCanvas("","",900,600);
