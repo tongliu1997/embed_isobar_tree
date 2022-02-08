@@ -24,7 +24,7 @@ species_plots mixed(true,Form("%s_pt_mixed",key_str.c_str()));
 //if(key_str=="piplus" || key_str=="piminus") scale_factor=500/6;
 
 
-cout<<2.2*lowpt.ZDCx_distribution->Integral()/highpt.ZDCx_distribution->GetEntries()<<endl;
+//cout<<2.2*lowpt.ZDCx_distribution->Integral()/highpt.ZDCx_distribution->GetEntries()<<endl;
 
 double high_trks=0,low_trks=0;
 for(int i=0;i<species_plots::lumi_bins;i++){
@@ -37,7 +37,9 @@ for(int i=0;i<species_plots::lumi_bins;i++){
     }
 }
 
-cout<<low_trks<<"\t"<<high_trks<<endl;
+cout<<key_str<<endl;
+cout<<"Number of events "<<lowpt.n_events()<<"\t"<<highpt.n_events()<<endl;
+cout<<"Number of tracks "<<low_trks<<"\t"<<high_trks<<endl;
 //double scale_factor=75.0/24.0*(low_trks-high_trks)/high_trks-1;
 double scale_factor=75.0/24.0*low_trks/high_trks;
 cout<<scale_factor<<endl;

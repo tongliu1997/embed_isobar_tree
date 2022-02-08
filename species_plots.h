@@ -1,12 +1,14 @@
 #pragma once
 #include "src/loc_funcs.h"
+#include "TH1F.h"
+#include "TH2F.h"
+
 using namespace std;
 /*
  * Read in all the embedding plots from file or generate empty ones
  * Dimensions of plots defined at the bottom
  * 
  * */
-
 
 
 
@@ -82,7 +84,7 @@ private:
 void species_plots::set_bins(){
     switch(m_obs){
 	case pt:
-	    obs_bins=150;
+	    obs_bins=600;
 	    obs_min=0;
 	    obs_max=30;	    
 	    break;
@@ -94,7 +96,7 @@ void species_plots::set_bins(){
     }
 }
 
-int species_plots::obs_bins=150;
+int species_plots::obs_bins=600;
 double species_plots::obs_min=0;
 double species_plots::obs_max=30;
 int species_plots::ntrk_bins=10;
@@ -102,6 +104,8 @@ double species_plots::ntrk_min=-0.5;
 double species_plots::ntrk_max=9.5;
 
 species_plots::species_plots(string inputname_str,string input_keyword,string name_keyword,const string obs){
+    TH1::SetDefaultSumw2(true);
+    TH2::SetDefaultSumw2(true);
  /*       pt_bins=90;
         pt_min=0;
     	pt_max=18;
@@ -152,7 +156,7 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
                 nmctrk_nontrans[i][j][k]->SetName(Form("nmctrk_nontrans_%s",name_token.c_str()));
 
 		
-		nmctrk_nontrans[i][j][k]->Sumw2();	
+/*		nmctrk_nontrans[i][j][k]->Sumw2();	
 		mc_reco_pt[i][j][k]->Sumw2();	
 		gen_mc_pt[i][j][k]->Sumw2();	
 		match_mc_pt[i][j][k]->Sumw2();	
@@ -160,7 +164,7 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
 		notrans_mc_reco_pt[i][j][k]->Sumw2();	
 		notrans_gen_mc_pt[i][j][k]->Sumw2();	
 		notrans_match_mc_pt[i][j][k]->Sumw2();	
-
+*/
 
                 reco_pt[i][j][k]=(TH1F*)mc_reco_pt[i][j][k]->ProjectionY();
                 notrans_reco_pt[i][j][k]=(TH1F*) notrans_mc_reco_pt[i][j][k]->ProjectionY();
@@ -178,13 +182,18 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
 //    cout<<zdc_in_token<<endl;
     ZDCx_distribution=(TH1F*)inputfile->Get(zdc_in_token.c_str());
     ZDCx_distribution->SetName(zdc_name_token.c_str());
-    ZDCx_distribution->Sumw2();
+//    ZDCx_distribution->Sumw2();
 
     if(1){
 	int obsx_nbins=mc_reco_pt[0][0][0]->GetNbinsX();
 	double obsx_min=mc_reco_pt[0][0][0]->GetXaxis()->GetBinLowEdge(1);
 	double obsx_max=mc_reco_pt[0][0][0]->GetXaxis()->GetBinLowEdge(obsx_nbins)+mc_reco_pt[0][0][0]->GetXaxis()->GetBinWidth(obsx_nbins);
-	if(obsx_nbins!=obs_bins || obsx_min != obs_min || obsx_max != obs_max )	cout<<"obs binning needs to be changed."<<endl;
+	if(obsx_nbins!=obs_bins || obsx_min != obs_min || obsx_max != obs_max )	{
+	 	if(obsx_nbins!=obs_bins)	cout<<obsx_nbins<<"\t"<<obs_bins<<endl;
+	 	if(obsx_min != obs_min) cout<<obsx_min<<"\t"<<obs_min<<endl;
+	 	if(obsx_max != obs_max) cout<<obsx_max <<"\t"<< obs_max<<endl;
+		cout<<"obs binning needs to be changed."<<endl;
+	}
 	int ntrkx_nbins=nmctrk_nontrans[0][0][0]->GetNbinsX();
 	double ntrkx_min=nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinLowEdge(1);
 	double ntrkx_max=nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinLowEdge(ntrkx_nbins)+nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinWidth(ntrkx_nbins);
@@ -201,6 +210,12 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
 //It's put there to differentiate this constructor with the previous one
 //
 species_plots::species_plots(bool make_new_plots, const string keyword, const string obs){
+    
+    TH1::SetDefaultSumw2(true);
+    TH2::SetDefaultSumw2(true);
+
+
+
     namestr=keyword;
     if(obs=="pt")m_obs=pt;
     if(obs=="phi")m_obs=phi;

@@ -14,7 +14,7 @@ return ibin;
 }
 
 TH1F** embed_stack(
-const char* filename="out-data/hadd_random_trk_proton.root",
+const string filename="out-data/hadd_random_trk_proton.root",
 int stack_dim=2,
 std::vector<int> stack_bin={0,1,2,3,4},
 string inkey_str="",
@@ -65,9 +65,9 @@ for(int ibin=0;ibin<stack_size;ibin++){
 	}
 
     }
-//    eff_diff[ibin]=(TH1F*)gen_diff[ibin]->Clone();
-    eff_diff[ibin]=(TH1F*)reco_diff[ibin]->Clone();
-    eff_diff[ibin]->Divide(gen_diff[ibin]);
+    eff_diff[ibin]=(TH1F*)gen_diff[ibin]->Clone();
+//    eff_diff[ibin]=(TH1F*)reco_diff[ibin]->Clone();
+//    eff_diff[ibin]->Divide(gen_diff[ibin]);
     char* hist_name;
     const char* namekey=namekey_str.c_str(); 
     if(stack_dim==0) hist_name=Form("%s Lumi diff: only one fxxking bin!",namekey);
@@ -86,8 +86,8 @@ return eff_diff;
 }
 
 TCanvas* embed_species(
-const char* filename="noembed_random_trk_proton.root",
-string keyword_str="proton",
+const string filename="noembed_random_trk_proton.root",
+//string keyword_str="proton",
 int stack_dim=2,
 string inkey="",
 string namekey="proton",
@@ -102,7 +102,7 @@ if(stack_dim==1)stack_bin={1,5,9,13,15,17};
 if(stack_dim==2) stack_bin={0,1,2,3,4};
 int stack_size=stack_bin.size()-1;
 
-const char* keyword=keyword_str.c_str();
+//const char* keyword=keyword_str.c_str();
 //const char* filename=Form("out-data/hadd_random_trk_%s.root",keyword);
 //const char* filename="eff_phi_piplus.root";
 

@@ -30,3 +30,8 @@ plots/
 #Local test files
 int_test.sh
 test_files/
+
+# Archive files
+*_archive
+*_archive/
+

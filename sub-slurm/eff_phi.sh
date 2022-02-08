@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 #SBATCH  --job-name=eff_phi
 #SBATCH  --array=0-209
-#SBATCH  -o out-slurm/%a
+#SBATCH  -o out-slurm/eff_phi/%a
 
 #SBATCH   --partition=day
 #SBATCH   --time=00:10:00
