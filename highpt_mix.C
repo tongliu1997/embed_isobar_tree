@@ -2,7 +2,8 @@
 
 void highpt_mix(
 const string key_str="proton",
-const string input_key="out-data/hadd_random_trk"
+const string input_key="out-data/hadd_eff_phi",
+const string obs="phi"
 ){
 
 
@@ -12,13 +13,13 @@ const string highpt_filename(Form("%s_%s_highpt.root",input_key.c_str(),key_str.
 cout<<lowpt_filename<<"\t"<<highpt_filename<<endl;
 
 
-species_plots lowpt(lowpt_filename,"",key_str);
+species_plots lowpt(lowpt_filename,"",key_str,obs.c_str());
 //species_plots lowpt(lowpt_filename);
 cout<<"High pt file name is "<<highpt_filename<<endl;
-species_plots highpt(highpt_filename,"",Form("%s_highpt",key_str.c_str()));
+species_plots highpt(highpt_filename,"",Form("%s_highpt",key_str.c_str()),obs.c_str());
 //species_plots highpt(highpt_filename);
 
-species_plots mixed(true,Form("%s_pt_mixed",key_str.c_str()));
+species_plots mixed(true,Form("%s_pt_mixed",key_str.c_str()),obs.c_str());
 
 //double scale_factor=100/6;
 //if(key_str=="piplus" || key_str=="piminus") scale_factor=500/6;
@@ -48,7 +49,7 @@ cout<<scale_factor<<endl;
 mixed.add(lowpt);
 mixed.add(highpt,scale_factor);
 
-mixed.write(Form("out-data/hadd_random_trk_%s_pt_mixed.root",key_str.c_str()));
+mixed.write(Form("%s_%s_pt_mixed.root",input_key.c_str(),key_str.c_str()));
 
 
 }

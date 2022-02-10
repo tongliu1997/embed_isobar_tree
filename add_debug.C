@@ -24,8 +24,11 @@ c2->Draw();
 
 //TH1F* blended_plots=*embed_stack("out-data/hadd_random_trk_piplus_highpt.root",0,{0,1},"","piplus_highpt");
 //TH1F** blended_plots=embed_stack("isobar_trk_eff_ptmix_blend.root",1,{0,1,2,3,4},"blended","blended");
-TCanvas* c4=embed_species("eff_phi_piplus.root","",1,"","","phi");
-c4->Draw();
+TCanvas* c4=embed_species("out-data/hadd_eff_phi_piplus_pt_mixed.root",1,"piplus_pt_mixed","piplus_pt_mixed","phi");
+std::vector<int> bin={0,1,2,3,4};
+//TH1F** plots=embed_stack("out-data/hadd_eff_phi_piplus.root",2,bin,"","","phi");
+
+//c4->Draw();
 
 /*TH1F** blended_plots=embed_stack("isobar_trk_eff_ptmix_blend.root",2,{0,1,2,3,4},"blended","blended");
 

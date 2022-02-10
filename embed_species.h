@@ -22,7 +22,11 @@ string namekey_str="proton",
 string obs="pt"
 ){
 cout<<"Inkey is "<<inkey_str<<endl;
+
+cout<<filename<<"\t"<<inkey_str<<"\t"<<namekey_str<<endl;
+
 species_plots species(filename,inkey_str,namekey_str,obs);
+
 
 int stack_size=stack_bin.size()-1;
 TH1F* gen_diff[stack_size];
@@ -65,22 +69,30 @@ for(int ibin=0;ibin<stack_size;ibin++){
 	}
 
     }
-    eff_diff[ibin]=(TH1F*)gen_diff[ibin]->Clone();
-//    eff_diff[ibin]=(TH1F*)reco_diff[ibin]->Clone();
-//    eff_diff[ibin]->Divide(gen_diff[ibin]);
+
+    
+
+//    eff_diff[ibin]=(TH1F*)gen_diff[ibin]->Clone();
+    eff_diff[ibin]=(TH1F*)reco_diff[ibin]->Clone();
+    eff_diff[ibin]->Divide(gen_diff[ibin]);
     char* hist_name;
     const char* namekey=namekey_str.c_str(); 
-    if(stack_dim==0) hist_name=Form("%s Lumi diff: only one fxxking bin!",namekey);
+    if(stack_dim==0) hist_name=Form("%s Overall",namekey);
     if(stack_dim==1) hist_name=Form("%s EA %i%% to %i%%",namekey,(17-stack_bin[ibin+1])*5,(17-stack_bin[ibin])*5 );
     if(stack_dim==2) hist_name=Form("%s vz %i to %i",namekey,stack_bin[ibin]*15-35,stack_bin[ibin+1]*15-35 );
 
     eff_diff[ibin]->SetTitle(hist_name);
     eff_diff[ibin]->SetName(hist_name);
-    eff_diff[ibin]->GetXaxis()->SetRangeUser(0,20);
+//    eff_diff[ibin]->GetXaxis()->SetRangeUser(0,20);
     eff_diff[ibin]->SetLineWidth(2);
+    eff_diff[ibin]->SetXTitle(obs.c_str());
+    eff_diff[ibin]->SetYTitle("Efficiency");
     
-
+//    eff_diff[ibin]->Draw("same");
 }
+
+
+
 return eff_diff;
 
 }
@@ -110,7 +122,9 @@ int stack_size=stack_bin.size()-1;
 TH1F** eff_diff=embed_stack(filename,stack_dim,stack_bin,inkey,namekey,obs);
 
 gStyle->SetOptStat(0);
-TCanvas* c1=new TCanvas("","",900,600);
+TCanvas* c1=new TCanvas("c1",filename.c_str(),900,600);
+//TPad* c1=new TPad();
+
 
 gStyle->SetPalette(kValentine);
 
@@ -121,6 +135,7 @@ c1->cd();
 for(int i=0;i<stack_size;i++){
 //    c1->cd(i+1);
     eff_diff[i]->Draw("same PLC PLM");
+//    eff_diff[i]->Draw("same");
     lg->AddEntry(eff_diff[i]->GetTitle());
 
 }
