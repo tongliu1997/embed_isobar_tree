@@ -1,6 +1,6 @@
 
 n_events=-1
-which_loop="eff_phi"
+which_loop="random_trk"
 dir="."
 # inp_list="./in-lists/list_test.list"
 name="${which_loop}"

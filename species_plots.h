@@ -19,16 +19,16 @@ enum Observable {pt, phi} ;
 class species_plots{
 
 public:
-    static const int lumi_bins=1;
+    static const int lumi_bins=4;
     static const int ea_bins=17;
     static const int vz_bins=4;
 
     static int obs_bins;
     static double obs_min;
     static double obs_max;
-    static int ntrk_bins;
-    static double ntrk_min;
-    static double ntrk_max;
+//    static int ntrk_bins;
+//    static double ntrk_min;
+//    static double ntrk_max;
 
 /*    species_plots::pt_bins=90;
     pt_min=0;
@@ -42,7 +42,7 @@ public:
     Observable m_obs{pt};
     bool is_new=false;
 
-    TH1F* nmctrk_nontrans[lumi_bins][ea_bins][vz_bins];
+//    TH1F* nmctrk_nontrans[lumi_bins][ea_bins][vz_bins];
     TH2F* mc_reco_pt[lumi_bins][ea_bins][vz_bins];
     TH1F* gen_mc_pt[lumi_bins][ea_bins][vz_bins];
     TH1F* match_mc_pt[lumi_bins][ea_bins][vz_bins];
@@ -99,9 +99,9 @@ void species_plots::set_bins(){
 int species_plots::obs_bins=600;
 double species_plots::obs_min=0;
 double species_plots::obs_max=30;
-int species_plots::ntrk_bins=10;
-double species_plots::ntrk_min=-0.5;
-double species_plots::ntrk_max=9.5;
+//int species_plots::ntrk_bins=10;
+//double species_plots::ntrk_min=-0.5;
+//double species_plots::ntrk_max=9.5;
 
 species_plots::species_plots(string inputname_str,string input_keyword,string name_keyword,const string obs){
     TH1::SetDefaultSumw2(true);
@@ -152,8 +152,8 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
                 notrans_gen_mc_pt[i][j][k]=(TH1F*)inputfile->Get(Form("notrans_gen_mc_%s_%s",obs.c_str(),in_token.c_str()));
                 notrans_gen_mc_pt[i][j][k]->SetName(Form("notrans_gen_mc_%s_%s",obs.c_str(),name_token.c_str()));
 
-                nmctrk_nontrans[i][j][k]=(TH1F*)inputfile->Get(Form("nmctrk_nontrans_%s",in_token.c_str()));
-                nmctrk_nontrans[i][j][k]->SetName(Form("nmctrk_nontrans_%s",name_token.c_str()));
+//         	nmctrk_nontrans[i][j][k]=(TH1F*)inputfile->Get(Form("nmctrk_nontrans_%s",in_token.c_str()));
+//         	nmctrk_nontrans[i][j][k]->SetName(Form("nmctrk_nontrans_%s",name_token.c_str()));
 
 		
 /*		nmctrk_nontrans[i][j][k]->Sumw2();	
@@ -194,13 +194,13 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
 	 	if(obsx_max != obs_max) cout<<obsx_max <<"\t"<< obs_max<<endl;
 		cout<<"obs binning needs to be changed."<<endl;
 	}
-	int ntrkx_nbins=nmctrk_nontrans[0][0][0]->GetNbinsX();
-	double ntrkx_min=nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinLowEdge(1);
-	double ntrkx_max=nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinLowEdge(ntrkx_nbins)+nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinWidth(ntrkx_nbins);
-	if(ntrkx_nbins != ntrk_bins || ntrkx_min != ntrk_min || ntrkx_max != ntrk_max) {
-	    cout<<"ntrk binning needs to be changed. "<<endl;
-	    cout<<ntrkx_nbins<<"\t"<<ntrkx_min<<"\t"<<ntrkx_max<<endl;
-	}
+//	int ntrkx_nbins=nmctrk_nontrans[0][0][0]->GetNbinsX();
+//	double ntrkx_min=nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinLowEdge(1);
+//	double ntrkx_max=nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinLowEdge(ntrkx_nbins)+nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinWidth(ntrkx_nbins);
+//	if(ntrkx_nbins != ntrk_bins || ntrkx_min != ntrk_min || ntrkx_max != ntrk_max) {
+//	    cout<<"ntrk binning needs to be changed. "<<endl;
+//	    cout<<ntrkx_nbins<<"\t"<<ntrkx_min<<"\t"<<ntrkx_max<<endl;
+//	}
     }
 }
 
@@ -233,7 +233,7 @@ species_plots::species_plots(bool make_new_plots, const string keyword, const st
 		notrans_mc_reco_pt[i][j][k]=new TH2F(Form("notrans_mc_reco_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max,obs_bins,obs_min,obs_max);
 		notrans_gen_mc_pt[i][j][k]=new TH1F(Form("notrans_gen_mc_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max);
 
-	   	nmctrk_nontrans[i][j][k]=new TH1F(Form("nmctrk_nontrans_%i_%i_%i_%s",i,j,k,keyword.c_str()),"",ntrk_bins,ntrk_min,ntrk_max); 
+//	   	nmctrk_nontrans[i][j][k]=new TH1F(Form("nmctrk_nontrans_%i_%i_%i_%s",i,j,k,keyword.c_str()),"",ntrk_bins,ntrk_min,ntrk_max); 
 
 
 		reco_pt[i][j][k]=new TH1F(Form("reco_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max);
@@ -243,7 +243,7 @@ species_plots::species_plots(bool make_new_plots, const string keyword, const st
             }
        	}
     }
-    ZDCx_distribution=new TH1F(Form("ZDCx_distribution_%s",keyword.c_str()),"",lumi_bins*50,0,100000);
+    ZDCx_distribution=new TH1F(Form("ZDCx_distribution_%s",keyword.c_str()),"",lumi_bins*50,0,20000);
     cout<<"Generated new plots."<<endl;	
 };
 
@@ -254,7 +254,7 @@ void species_plots::scale(double factor){
     for(int i=0;i<lumi_bins;i++){
 	for(int j=0;j<ea_bins;j++){
 	    for(int k=0;k<vz_bins;k++){
-		nmctrk_nontrans[i][j][k]->Scale(factor);	
+//		nmctrk_nontrans[i][j][k]->Scale(factor);	
 		mc_reco_pt[i][j][k]->Scale(factor);	
 		gen_mc_pt[i][j][k]->Scale(factor);	
 		match_mc_pt[i][j][k]->Scale(factor);	
@@ -277,10 +277,11 @@ void species_plots::add(species_plots c1,double factor){
     string obs;
     if(m_obs==pt) obs="pt";
     if(m_obs==phi) obs="phi";
+
     for(int i=0;i<lumi_bins;i++){
 	for(int j=0;j<ea_bins;j++){
 	    for(int k=0;k<vz_bins;k++){
-		nmctrk_nontrans[i][j][k]->Add(c1.nmctrk_nontrans[i][j][k],factor);	
+//		nmctrk_nontrans[i][j][k]->Add(c1.nmctrk_nontrans[i][j][k],factor);	
 		mc_reco_pt[i][j][k]->Add(c1.mc_reco_pt[i][j][k],factor);	
 		gen_mc_pt[i][j][k]->Add(c1.gen_mc_pt[i][j][k],factor);	
 		match_mc_pt[i][j][k]->Add(c1.match_mc_pt[i][j][k],factor);	
@@ -303,6 +304,8 @@ void species_plots::add(species_plots c1,double factor){
 	}
     }
     ZDCx_distribution->Add(c1.ZDCx_distribution,factor);
+    cout<<"Checkpoint"<<endl;
+
 }
 
 
@@ -324,7 +327,7 @@ void species_plots::write(TFile* output){
     for(int i=0;i<lumi_bins;i++){
 	for(int j=0;j<ea_bins;j++){
 	    for(int k=0;k<vz_bins;k++){
-		nmctrk_nontrans[i][j][k]->Write();
+//		nmctrk_nontrans[i][j][k]->Write();
 		mc_reco_pt[i][j][k]->Write();
 		match_mc_pt[i][j][k]->Write();
 		gen_mc_pt[i][j][k]->Write();

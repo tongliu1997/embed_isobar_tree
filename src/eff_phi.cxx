@@ -22,32 +22,10 @@
 const int debug_level=0;
 
 
-const int pt_bin=600;
-const double pt_min=0;
-const double pt_max=30;
-
-const int ntrk_bin=10;
-const double ntrk_min=-0.5;
-const double ntrk_max=9.5;
-
-const int phi_bin=96;
-const double phi_min=0;
-const double phi_max=TWO_PI;
-
 
 //This function is used to assign an event to a certain bin, whatever the parameter is
 //The 0-th entry of "bound" is the lower bound of said parameter
 //where the last should be the upper bound
-static int define_bin(double param,vector<double> bound){
-    int ibin=-1;
-    vector<double>::iterator it=bound.begin();
-    while( it != bound.end() ){
-	if( param < *it ){ return ibin; }
-	ibin++;
-	it++;
-    }
-    return -2;
-}
 
 using namespace std;
 void eff_phi(events& dat, string _options) {
@@ -66,32 +44,20 @@ void eff_phi(events& dat, string _options) {
     }
 
     // Histogram declarations here:
-    vector<double> vz_bound={-35,-20,-5,10,25};
-//    vector<double> vz_bound={-30,-15,0,15,30};
-//    vector<double> ea_bound={0,1,3,5,100};
-    vector<double> ea_bound={0,9, 12, 16, 21, 27, 35, 45, 56, 70, 86, 104, 126, 152, 181, 217, 259,10000};
-
-
-//    vector<double> lumi_bound={0,8000,15000,23000,50000};
-    vector<double> lumi_bound={0,100000};
-
-    int lumi_bins=lumi_bound.size()-1;
-    int ea_bins=ea_bound.size()-1;
-    int vz_bins=vz_bound.size()-1;
-    TH1F* nmctrk_nontrans[lumi_bins][ea_bins][vz_bins];
-    TH1F* match_mc_phi[lumi_bins][ea_bins][vz_bins];
-    TH2F* mc_reco_phi[lumi_bins][ea_bins][vz_bins];
-    TH1F* gen_mc_phi[lumi_bins][ea_bins][vz_bins];
-    TH1F* notrans_match_mc_phi[lumi_bins][ea_bins][vz_bins];
-    TH2F* notrans_mc_reco_phi[lumi_bins][ea_bins][vz_bins];
-    TH1F* notrans_gen_mc_phi[lumi_bins][ea_bins][vz_bins];
+//    TH1F* nmctrk_nontrans[lumi_bins][ea_bins][vz_bins];
+    TH1F* match_mc_phi[eta_bins][ea_bins][vz_bins];
+    TH2F* mc_reco_phi[eta_bins][ea_bins][vz_bins];
+    TH1F* gen_mc_phi[eta_bins][ea_bins][vz_bins];
+    TH1F* notrans_match_mc_phi[eta_bins][ea_bins][vz_bins];
+    TH2F* notrans_mc_reco_phi[eta_bins][ea_bins][vz_bins];
+    TH1F* notrans_gen_mc_phi[eta_bins][ea_bins][vz_bins];
 //
 //The "notrans_" tag selects the near & recoil side MC tracks for effeciency study
 //
-    for(int i=0;i<lumi_bins;i++){
+    for(int i=0;i<eta_bins;i++){
 	for(int j=0;j<ea_bins;j++){
 	    for(int k=0;k<vz_bins;k++){
-		nmctrk_nontrans[i][j][k]=new TH1F(Form("nmctrk_nontrans_%i_%i_%i",i,j,k),"Number of MC tracks in the accepted region",ntrk_bin,ntrk_min,ntrk_max);
+//		nmctrk_nontrans[i][j][k]=new TH1F(Form("nmctrk_nontrans_%i_%i_%i",i,j,k),"Number of MC tracks in the accepted region",ntrk_bin,ntrk_min,ntrk_max);
 		mc_reco_phi[i][j][k]=new TH2F(Form("mc_reco_phi_%i_%i_%i",i,j,k),"MC vs reco pt;MC pt;Reco pt",phi_bin,phi_min,phi_max,phi_bin,phi_min,phi_max);
 		match_mc_phi[i][j][k]=new TH1F(Form("match_mc_phi_%i_%i_%i",i,j,k),"Matched MC pt;MC pt;count",phi_bin,phi_min,phi_max);
 		gen_mc_phi[i][j][k]=new TH1F(Form("gen_mc_phi_%i_%i_%i",i,j,k),"Generated MC pt;MC pt;count",phi_bin,phi_min,phi_max);
@@ -173,37 +139,40 @@ void eff_phi(events& dat, string _options) {
 	    short mc_trk_id=dat.mc_track_id[i];
 	    float mc_pt=dat.mc_track_pt[i];
 	    float mc_phi=dat.mc_track_phi[i]; 
-	    gen_mc_phi[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_phi);
+	    float mc_eta=dat.mc_track_eta[i];
+	    int ibin_eta=define_bin(mc_eta,eta_bound);
+
+	    gen_mc_phi[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_phi);
 	    bool mc_is_trans=is_phi_tran(phi_rantrig,dat.mc_track_phi[i]);
 	    if(debug_level > 2){
 		cout<<"Checkpoint 1 mc_phi is "<<mc_phi<<endl;
 		if(mc_is_trans)cout<<"Is transverse"<<endl;
 		else cout<<"Is not transverse"<<endl;
 	    }
-	    if(!mc_is_trans) notrans_gen_mc_phi[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_phi);
+	    if(!mc_is_trans) notrans_gen_mc_phi[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_phi);
 	    if(debug_level > 2)cout<<"Checkpoint 2"<<endl;
 	    if(mc_trk_id<0)continue;
 	    if(!(dat.track_pass_cuts[mc_trk_id] && (dat.track_nHitsFit[mc_trk_id] > 0.52*dat.track_nHitsPoss[mc_trk_id] )))continue;//
 //	    TH1F* gen_mc_pt[lumi_bins][ea_bins][vz_bins];
 	    float reco_phi=dat.track_phi[mc_trk_id];
-	    mc_reco_phi[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_phi,reco_phi);
-	    match_mc_phi[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_phi);
+	    mc_reco_phi[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_phi,reco_phi);
+	    match_mc_phi[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_phi);
 	    if(!mc_is_trans){
-		notrans_mc_reco_phi[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_phi,reco_phi);
-		notrans_match_mc_phi[ibin_lumi][ibin_ea][ibin_vz]->Fill(mc_phi);
+		notrans_mc_reco_phi[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_phi,reco_phi);
+		notrans_match_mc_phi[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_phi);
 		nmctrack_nontrans++;
 	    }
 	}
-	nmctrk_nontrans[ibin_lumi][ibin_ea][ibin_vz]->Fill(nmctrack_nontrans);
+//	nmctrk_nontrans[ibin_lumi][ibin_ea][ibin_vz]->Fill(nmctrack_nontrans);
     	if(debug_level) cout<<"Finish working on event."<<endl;
     }
 
     // Write histograms here
     // hg.Write();
-    for(int i=0;i<lumi_bins;i++){
+    for(int i=0;i<eta_bins;i++){
 	for(int j=0;j<ea_bins;j++){
 	    for(int k=0;k<vz_bins;k++){
-		nmctrk_nontrans[i][j][k]->Write();
+//		nmctrk_nontrans[i][j][k]->Write();
 		mc_reco_phi[i][j][k]->Write();
 		match_mc_phi[i][j][k]->Write();
 		gen_mc_phi[i][j][k]->Write();

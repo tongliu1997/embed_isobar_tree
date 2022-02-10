@@ -140,3 +140,17 @@ double refmult_corr(int refmult,double zdcx,double vz){
   return corrected;
 }
 */
+
+
+
+int define_bin(double param,vector<double> bound){
+    int ibin=-1;
+    vector<double>::iterator it=bound.begin();
+    while( it != bound.end() ){
+        if( param < *it ){ return ibin; }
+        ibin++;
+        it++;
+    }
+    return -2;
+}
+
