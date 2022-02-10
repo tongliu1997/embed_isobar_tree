@@ -1,7 +1,3 @@
-/*
- *Looks like embedding data all have refmult set to zero? Check back that at RCAF.
- *
- */
 #include "events.h"
 #include <sstream>
 #include <fstream>
@@ -36,7 +32,7 @@ void random_trk(events& dat, string _options) {
         // msg_tree.msg(Form(" Options %i : %s", n_options, arg.c_str()));
         ++n_options;
     }
-
+    cout<<"Checkpoint 1"<<endl;
 //    TH1F* nmctrk_nontrans[eta_bins][ea_bins][vz_bins];
     TH1F* match_mc_pt[eta_bins][ea_bins][vz_bins];
     TH2F* mc_reco_pt[eta_bins][ea_bins][vz_bins];

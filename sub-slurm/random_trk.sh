@@ -5,7 +5,7 @@
 
 #SBATCH   --partition=day
 #SBATCH   --time=00:10:00
-#SBATCH   --mem=1G
+#SBATCH   --mem=4G
 
 n_events=-1
 species_list=("piplus" "piminus" "kplus" "kminus" "proton" "antiproton")
