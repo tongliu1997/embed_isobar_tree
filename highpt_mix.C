@@ -2,8 +2,8 @@
 
 void highpt_mix(
 const string key_str="proton",
-const string input_key="out-data/hadd_eff_phi",
-const string obs="phi"
+const string input_key="out-data/hadd_random_trk",
+const string obs="pt"
 ){
 
 
