@@ -1,8 +1,8 @@
 #include "embed_species.h"
 void embed_ana(
-const string pt_token="pt_mixed",
-const string obs="pt",
-int stack_dim=0
+const string pt_token="",
+const string obs="phi",
+int stack_dim=1
 ){
 
 string which_loop;
@@ -15,7 +15,7 @@ TH2::SetDefaultSumw2(true);
 gStyle->SetOptStat(0);
 gStyle->SetPalette(kValentine);
 std::vector<int> stack_bin;
-if(stack_dim==0)stack_bin={0,1};
+if(stack_dim==0)stack_bin={0,1,2,3,4};
 if(stack_dim==1)stack_bin={1,5,9,13,15,17};
 if(stack_dim==2) stack_bin={0,1,2,3,4};
 int stack_size=stack_bin.size()-1;
@@ -33,7 +33,7 @@ for(it=keywords.begin();it!=keywords.end();it++){
     string key(pt_token==""? *it : Form("%s_%s",it->c_str(),pt_token.c_str()));
     string filename(Form("out-data/hadd_%s_%s.root",which_loop.c_str(),key.c_str()));
 
-    const string inkey(pt_token==""? "" : key);
+    const string inkey(pt_token!="pt_mixed"? "" : key);
     c0->cd(i);
     eff_diff[i-1]=embed_stack(filename,stack_dim,stack_bin,inkey,key,obs);
     TLegend* lg;

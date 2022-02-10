@@ -16,7 +16,7 @@ out-slurm/*
 backup/
 
 # Raw output histograms
-/out-data/*/*.root
+/out-data/*/**/*.root
 
 # Tree file lists
 lists/*

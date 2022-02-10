@@ -26,7 +26,8 @@ cout<<"Inkey is "<<inkey_str<<endl;
 cout<<filename<<"\t"<<inkey_str<<"\t"<<namekey_str<<endl;
 
 species_plots species(filename,inkey_str,namekey_str,obs);
-
+const int nbins=47;
+const Double_t xbins[nbins+1]={0,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.,2.1,2.2,2.3,2.4,2.6,2.8,3,3.35,3.8,4.4,5.1,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30};
 
 int stack_size=stack_bin.size()-1;
 TH1F* gen_diff[stack_size];
@@ -73,11 +74,18 @@ for(int ibin=0;ibin<stack_size;ibin++){
     
 
 //    eff_diff[ibin]=(TH1F*)gen_diff[ibin]->Clone();
-    eff_diff[ibin]=(TH1F*)reco_diff[ibin]->Clone();
-    eff_diff[ibin]->Divide(gen_diff[ibin]);
+    if(obs=="pt"){
+	eff_diff[ibin]=(TH1F*)reco_diff[ibin]->Rebin(nbins,Form("rebin_%i",ibin),xbins);
+//	eff_diff[ibin]=(TH1F*)reco_diff[ibin]->Clone();
+	eff_diff[ibin]->Divide((TH1F*)gen_diff[ibin]->Rebin(nbins,Form("gen_rebin_%i",ibin),xbins));
+    }
+    else{
+	eff_diff[ibin]=(TH1F*)reco_diff[ibin]->Clone();
+    	eff_diff[ibin]->Divide(gen_diff[ibin]);
+    }
     char* hist_name;
     const char* namekey=namekey_str.c_str(); 
-    if(stack_dim==0) hist_name=Form("%s Overall",namekey);
+    if(stack_dim==0) hist_name=Form("%s track MC eta %.1f to %.1f",namekey, -1.+0.5*stack_bin[ibin],-1.+0.5*stack_bin[ibin+1]);
     if(stack_dim==1) hist_name=Form("%s EA %i%% to %i%%",namekey,(17-stack_bin[ibin+1])*5,(17-stack_bin[ibin])*5 );
     if(stack_dim==2) hist_name=Form("%s vz %i to %i",namekey,stack_bin[ibin]*15-35,stack_bin[ibin+1]*15-35 );
 
