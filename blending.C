@@ -1,15 +1,18 @@
 #include "species_plots.h"
 
 
+double Interpolate(int size,double* coord,double* wt,double x){}
+
+
 TH1F** read_weight(const char* weightname){
 //read off weighting between species
-double wt[60][7];
+double wt[7][60];
 
 FILE* weightfile=fopen(weightname,"r");
 //*wt=(double **)malloc(sizeof(double *)*60);
 for(int i=0;i<60;i++){
 //    (*wt)[i]=(double *)malloc(sizeof(double)*7);
-    fscanf(weightfile,"%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",&(wt[i][0]),&(wt[i][1]),&(wt[i][2]),&(wt[i][3]),&(wt[i][4]),&(wt[i][5]),&(wt[i][6]));
+    fscanf(weightfile,"%lf\t%lf\t%lf\t%lf\t%lf\t%lf\t%lf\n",&(wt[0][i]),&(wt[1][i]),&(wt[2][i]),&(wt[3][i]),&(wt[4][i]),&(wt[5][i]),&(wt[6][i]));
 
 
 }
@@ -28,9 +31,13 @@ TH1F** weights=(TH1F**)malloc(sizeof(TH1F*)*6);
 for(int ifile=0;ifile<6;ifile++){
     weights[ifile]=new TH1F(Form("weight_%i",ifile),"",species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max);
     for(int ibin=1;ibin<=species_plots::pt_bins;ibin++){
-	double buff;
-        if(ibin<=30){buff=(wt[2*ibin-2][ifile+1]+wt[2*ibin-1][ifile+1])/2.0;}
-        else{buff=wt[59][ifile+1];}
+//	double buff;
+//        if(ibin<=30){buff=(wt[2*ibin-2][ifile+1]+wt[2*ibin-1][ifile+1])/2.0;}
+//        else{buff=wt[59][ifile+1];}
+
+
+	double value=Interpolate(60,wt[0],wt[ifile+1],weights[ifile]->GetBinCenter(ibin));
+
 	weights[ifile]->SetBinContent(ibin,buff);
 	weights[ifile]->SetBinError(ibin,0);
     }   
