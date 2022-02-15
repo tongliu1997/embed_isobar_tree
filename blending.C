@@ -1,7 +1,19 @@
 #include "species_plots.h"
 
 
-double Interpolate(int size,double* coord,double* wt,double x){}
+double Interpolate(int size,double* coord,double* wt,double x){
+    double max_coord=coord[size-1];
+    double min_coord=coord[0];
+    if (x>=max_coord) return wt[size-1]; 
+    if (x<=min_coord) return wt[0];
+    for(int i=0;i<size-1;i++){
+	if(x>coord[i+1])continue;
+	if(x==coord[i+1])return wt[i+1];
+	double dist=1.*(x-coord[i])/(coord[i+1]-coord[i]);
+	return dist*wt[i]+(1-dist)*wt[i+1];	
+    }
+    return -1;
+}
 
 
 TH1F** read_weight(const char* weightname){
@@ -29,8 +41,8 @@ TH1F** weights=(TH1F**)malloc(sizeof(TH1F*)*6);
 
 
 for(int ifile=0;ifile<6;ifile++){
-    weights[ifile]=new TH1F(Form("weight_%i",ifile),"",species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max);
-    for(int ibin=1;ibin<=species_plots::pt_bins;ibin++){
+    weights[ifile]=new TH1F(Form("weight_%i",ifile),"",species_plots::obs_bins,species_plots::obs_min,species_plots::obs_max);
+    for(int ibin=1;ibin<=species_plots::obs_bins;ibin++){
 //	double buff;
 //        if(ibin<=30){buff=(wt[2*ibin-2][ifile+1]+wt[2*ibin-1][ifile+1])/2.0;}
 //        else{buff=wt[59][ifile+1];}
@@ -38,13 +50,13 @@ for(int ifile=0;ifile<6;ifile++){
 
 	double value=Interpolate(60,wt[0],wt[ifile+1],weights[ifile]->GetBinCenter(ibin));
 
-	weights[ifile]->SetBinContent(ibin,buff);
+	weights[ifile]->SetBinContent(ibin,value);
 	weights[ifile]->SetBinError(ibin,0);
     }   
 }
 //Need to update this function for better interpolation
 
-
+cout<<"Weight read into histograms."<<endl;
 return weights;
 
 }
@@ -53,9 +65,9 @@ return weights;
 TH2F** augment(TH1F** wt1d){
 TH2F** augmented=(TH2F**)malloc(sizeof(TH2F*)*6);
 for(int ifile=0;ifile<6;ifile++){
-    augmented[ifile]=new TH2F(Form("augmented_weight_%i",ifile),"",species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max,species_plots::pt_bins,species_plots::pt_min,species_plots::pt_max);
-    for(int ibin=1;ibin<=species_plots::pt_bins;ibin++){
-    	for(int jbin=1;jbin<species_plots::pt_bins;jbin++){
+    augmented[ifile]=new TH2F(Form("augmented_weight_%i",ifile),"",species_plots::obs_bins,species_plots::obs_min,species_plots::obs_max,species_plots::obs_bins,species_plots::obs_min,species_plots::obs_max);
+    for(int ibin=1;ibin<=species_plots::obs_bins;ibin++){
+    	for(int jbin=1;jbin<species_plots::obs_bins;jbin++){
 	    double entry=wt1d[ifile]->GetBinContent(ibin);
 	    augmented[ifile]->SetBinContent(ibin,jbin,entry);
 	    augmented[ifile]->SetBinError(ibin,jbin,0);
@@ -70,7 +82,7 @@ return augmented;
 
 void blending(
 		const char* weightname="species_weight.txt",
-		const char* input_key="out-data/hadd_random_trk",
+		const string input_key="out-data/hadd_random_trk",
 		const string suffix="pt_mixed"
 ){
 
@@ -92,14 +104,14 @@ for(int i=0;i<6;i++){
 }
 
 
-std::vector<string> keyword_str={"proton","antiproton","kplus","kminus","piminus_2","piminus"};
+std::vector<string> keyword_str={"proton","antiproton","kplus","kminus","piplus","piminus"};
 const int nspecies=keyword_str.size();
 species_plots* species[nspecies];
 for(int i=0;i<nspecies;i++){
 
     const char* keyword=keyword_str[i].c_str();
-    string filename(Form("%s_%s.root",input_key,keyword));
-    if(suffix!="")filename=Form("%s_%s_%s.root",input_key,keyword,suffix.c_str());
+    string filename(Form("%s_%s.root",input_key.c_str(),keyword));
+    if(suffix!="")filename=Form("%s_%s_%s.root",input_key.c_str(),keyword,suffix.c_str());
    
     if(keyword_str[i]=="piminus_2")
      	species[i]=new species_plots(filename,"piminus_pt_mixed");
