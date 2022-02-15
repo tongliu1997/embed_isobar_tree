@@ -62,7 +62,7 @@ public:
     species_plots(bool make_new_plots, const string keyword,const string obs="pt");
     virtual ~species_plots();
     virtual void scale(double factor);
-    virtual void add(species_plots c1,double factor=1);
+    virtual void add(const species_plots &c1,double factor=1);
 
     double n_events();//This returns the SCALED number of events; i.e. if an event is scaled by 3 then it's counted as 3 events.
     virtual void normalize();
@@ -113,6 +113,7 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
     	ntrk_min=-0.5;
     	ntrk_max=9.5;
 */
+    cout<<"Reading in file "<<inputname_str<<endl;
     TFile* inputfile=new TFile(inputname_str.c_str());
 //  string inputname_str(inputname);
     string namekey_str=name_keyword;
@@ -129,12 +130,10 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
     
     set_bins();
 
-    
 
     for(int i=0;i<lumi_bins;i++){
         for(int j=0;j<ea_bins;j++){
             for(int k=0;k<vz_bins;k++){
-		    
 		const string in_token ( (input_keyword=="") ? Form("%i_%i_%i",i,j,k):Form("%i_%i_%i_%s",i,j,k,input_keyword.c_str()) );
 		const string name_token ( (namekey_str=="") ? Form("%i_%i_%i",i,j,k):Form("%i_%i_%i_%s",i,j,k,namekey_str.c_str()) ) ;
 
@@ -176,10 +175,10 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
             }
        	}
     }
-
+    cout<<"Binned histogram read in."<<endl;
     const string zdc_in_token  ( (input_keyword=="") ? "ZDCx_distribution" : Form("ZDCx_distribution_%s",input_keyword.c_str()) );
     const string zdc_name_token ( (namekey_str=="") ? "ZDCx_distribution" : Form("ZDCx_distribution_%s",namekey_str.c_str()) ) ;
-//    cout<<zdc_in_token<<endl;
+    cout<<zdc_in_token<<endl;
     ZDCx_distribution=(TH1F*)inputfile->Get(zdc_in_token.c_str());
     ZDCx_distribution->SetName(zdc_name_token.c_str());
 //    ZDCx_distribution->Sumw2();
@@ -189,10 +188,10 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
 	double obsx_min=mc_reco_pt[0][0][0]->GetXaxis()->GetBinLowEdge(1);
 	double obsx_max=mc_reco_pt[0][0][0]->GetXaxis()->GetBinLowEdge(obsx_nbins)+mc_reco_pt[0][0][0]->GetXaxis()->GetBinWidth(obsx_nbins);
 	if(obsx_nbins!=obs_bins || obsx_min != obs_min || obsx_max != obs_max )	{
-	 	if(obsx_nbins!=obs_bins)	cout<<obsx_nbins<<"\t"<<obs_bins<<endl;
-	 	if(obsx_min != obs_min) cout<<obsx_min<<"\t"<<obs_min<<endl;
-	 	if(obsx_max != obs_max) cout<<obsx_max <<"\t"<< obs_max<<endl;
-		cout<<"obs binning needs to be changed."<<endl;
+	 	if(obsx_nbins!=obs_bins){cout<<obsx_nbins<<"\t"<<obs_bins<<endl; obs_bins=obsx_nbins;}
+	 	if(obsx_min != obs_min) {cout<<obsx_min<<"\t"<<obs_min<<endl; obs_min=obsx_min;}
+	 	if(obsx_max != obs_max) {cout<<obsx_max <<"\t"<< obs_max<<endl; obs_max=obsx_max;}
+		cout<<"obs binning changed."<<endl;
 	}
 //	int ntrkx_nbins=nmctrk_nontrans[0][0][0]->GetNbinsX();
 //	double ntrkx_min=nmctrk_nontrans[0][0][0]->GetXaxis()->GetBinLowEdge(1);
@@ -213,8 +212,6 @@ species_plots::species_plots(bool make_new_plots, const string keyword, const st
     
     TH1::SetDefaultSumw2(true);
     TH2::SetDefaultSumw2(true);
-
-
 
     namestr=keyword;
     if(obs=="pt")m_obs=pt;
@@ -247,7 +244,33 @@ species_plots::species_plots(bool make_new_plots, const string keyword, const st
     cout<<"Generated new plots."<<endl;	
 };
 
-species_plots::~species_plots() {return;};
+species_plots::~species_plots() {
+
+
+    for(int i=0;i<lumi_bins;i++){
+    	for(int j=0;j<ea_bins;j++){
+            for(int k=0;k<vz_bins;k++){
+                delete mc_reco_pt[i][j][k];
+                delete gen_mc_pt[i][j][k];
+                delete match_mc_pt[i][j][k];
+
+                delete notrans_match_mc_pt[i][j][k];
+                delete notrans_mc_reco_pt[i][j][k];
+                delete notrans_gen_mc_pt[i][j][k];
+
+                delete reco_pt[i][j][k];
+                delete notrans_reco_pt[i][j][k];
+
+                delete pt_efficiency[i][j][k];
+		}
+	    }
+	}
+    delete ZDCx_distribution;   
+
+    return;
+
+
+};
 
 void species_plots::scale(double factor){
     
@@ -273,7 +296,7 @@ void species_plots::scale(double factor){
     ZDCx_distribution->Scale(factor);
 }
 
-void species_plots::add(species_plots c1,double factor){
+void species_plots::add(const species_plots &c1, double factor){
     string obs;
     if(m_obs==pt) obs="pt";
     if(m_obs==phi) obs="phi";
@@ -282,7 +305,9 @@ void species_plots::add(species_plots c1,double factor){
 	for(int j=0;j<ea_bins;j++){
 	    for(int k=0;k<vz_bins;k++){
 //		nmctrk_nontrans[i][j][k]->Add(c1.nmctrk_nontrans[i][j][k],factor);	
-		mc_reco_pt[i][j][k]->Add(c1.mc_reco_pt[i][j][k],factor);	
+
+//		mc_reco_pt[i][j][k]->Add(c1.mc_reco_pt[i][j][k],factor);	
+
 		gen_mc_pt[i][j][k]->Add(c1.gen_mc_pt[i][j][k],factor);	
 		match_mc_pt[i][j][k]->Add(c1.match_mc_pt[i][j][k],factor);	
 
@@ -292,7 +317,6 @@ void species_plots::add(species_plots c1,double factor){
 
 		reco_pt[i][j][k]->Add(c1.reco_pt[i][j][k],factor);
 		notrans_reco_pt[i][j][k]->Add(c1.notrans_reco_pt[i][j][k],factor);
-//		pt_efficiency[i][j][k]->Add(c1.pt_efficiency[i][j][k],factor);
 
 		pt_efficiency[i][j][k]=(TH1F*)reco_pt[i][j][k]->Clone();
 		pt_efficiency[i][j][k]->SetName(Form("%s_efficiency_%i_%i_%i_%s",obs.c_str(),i,j,k,namestr.c_str()));
@@ -304,8 +328,7 @@ void species_plots::add(species_plots c1,double factor){
 	}
     }
     ZDCx_distribution->Add(c1.ZDCx_distribution,factor);
-    cout<<"Checkpoint"<<endl;
-
+    return;
 }
 
 
