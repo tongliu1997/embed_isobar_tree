@@ -90,15 +90,21 @@ void blending(
 TH1F** wt=read_weight(weightname);
 TH2F** wt_2d=augment(wt);
 
-/*
+
 TCanvas* c1=new TCanvas();
 c1->Divide(3,2);
 for(int i=0;i<6;i++){
     c1->cd(i+1);
-    wt[i]->Draw();
+    wt_2d[i]->Draw("colz");
 }
-*/
+
+
+
+TH2F* mc_reco_wt[6];
+
 species_plots blended(true,"blended","pt");
+
+
 
 std::vector<string> keyword_str={"proton","antiproton","kplus","kminus","piplus","piminus"};
 const int nspecies=keyword_str.size();
@@ -114,6 +120,7 @@ for(int ifile=0;ifile<nspecies;ifile++){
     species_plots mspecies(filename,Form("%s_%s",keyword,suffix.c_str()));
     cout<<keyword_str[ifile]<<" read in."<<endl;
 
+//    mspecies.scale(10000000./mspecies.n_events());  
     mspecies.normalize();  
     
 
@@ -124,14 +131,25 @@ for(int ifile=0;ifile<nspecies;ifile++){
 	    	mspecies.match_mc_pt[i][j][k]->Multiply(wt[ifile]);
 	    	mspecies.reco_pt[i][j][k]->Multiply(wt[ifile]);
 		mspecies.mc_reco_pt[i][j][k]->Multiply(wt_2d[ifile]);
+		
 	    }
 	}
     }
+    mc_reco_wt[ifile]=(TH2F*)mspecies.mc_reco_pt[0][0][0]->Clone();
     blended.add(mspecies,1);
     cout<<keyword_str[ifile]<<" added."<<endl;
 }
 
-blended.write("isobar_trk_eff_ptmix_blend_new.root");
+TCanvas* c2=new TCanvas();
+c2->Divide(3,2);
+for(int i=0;i<6;i++){
+    c2->cd(i+1);
+    mc_reco_wt[i]->Draw("colz");
+
+}
+
+
+blended.write("isobar_trk_eff_ptmix_blend.root");
 
 /*
 species_plots blended(true,"blended");

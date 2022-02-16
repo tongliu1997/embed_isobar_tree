@@ -306,7 +306,7 @@ void species_plots::add(const species_plots &c1, double factor){
 	    for(int k=0;k<vz_bins;k++){
 //		nmctrk_nontrans[i][j][k]->Add(c1.nmctrk_nontrans[i][j][k],factor);	
 
-//		mc_reco_pt[i][j][k]->Add(c1.mc_reco_pt[i][j][k],factor);	
+		mc_reco_pt[i][j][k]->Add(c1.mc_reco_pt[i][j][k],factor);	
 
 		gen_mc_pt[i][j][k]->Add(c1.gen_mc_pt[i][j][k],factor);	
 		match_mc_pt[i][j][k]->Add(c1.match_mc_pt[i][j][k],factor);	

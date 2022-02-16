@@ -1,7 +1,7 @@
 #include "embed_species.h"
 void embed_ana(
 const string pt_token="",
-const string obs="phi",
+const string obs="pt",
 int stack_dim=1
 ){
 

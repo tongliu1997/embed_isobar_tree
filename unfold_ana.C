@@ -35,8 +35,8 @@ TFile* datafile=new TFile(data_name);
 TH2D* htrackpT_cent=(TH2D*)datafile->Get("htrackpT_cent");
 TH2D* hntrk_cent=(TH2D*)datafile->Get("hntrk_cent");
 
-const int nbins=29;
-Double_t xbins[nbins+1]={0,0.2,0.4,0.6,0.8,1,1.2,1.4,1.6,1.8,2.,2.2,2.4,2.6,2.8,3,3.4,3.8,4.4,5,6,7,8,9,10,12,15,18,25,30};
+
+
 TH1D* hpt_diff[nstack-1];
 TH1D* hpt_diff_rebin[nstack-1];
 TH1D* hpt_diff_unfold[nstack-1];
@@ -52,7 +52,7 @@ for(int i=0;i<nstack-1;i++){
 	nevts_diff[i]+=nev_cent->GetBinContent(j);
 	evcoll[i]+=nev_cent->GetBinContent(j)*ncoll_bins[j-2];	
     }
-    hpt_diff[i]->Rebin(4);
+//    hpt_diff[i]->Rebin(4);
     hpt_diff_rebin[i]=(TH1D*)hpt_diff[i]->Rebin(nbins,Form("hpt_diff_rebin_%i",i),xbins);
 //    hpt_diff_rebin[i]=(TH1D*)hpt_diff[i]->Clone();
 //    hpt_diff[i]->GetXaxis()->SetRange(1,25);
@@ -60,14 +60,14 @@ for(int i=0;i<nstack-1;i++){
 
 //    hpt_diff[i]->Divide(eff_stacked[i]);
 
-    hpt_diff_unfold[i]=(TH1D*)hpt_diff[i]->Clone();
+    hpt_diff_unfold[i]=(TH1D*)hpt_diff_rebin[i]->Clone();
     hpt_diff_unfold[i]->SetName(Form("hpt_diff_unfold_%i",i));
 //    hpt_diff_unfold[i]->GetXaxis()->SetRangeUser(0,5);
     hpt_diff_unfold[i]->Divide(eff_stacked[i]);
     cout<<hpt_diff_unfold[i]->GetNbinsX()<<"\t"<<eff_stacked[i]->GetNbinsX()<<endl;
-    hpt_diff_unfold_rebin[i]=(TH1D*)hpt_diff_unfold[i]->Rebin(nbins,Form("hpt_diff_unfold_rebin_%i",i),xbins);
-//    hpt_diff_unfold_rebin[i]=(TH1D*)hpt_diff_unfold[i]->Clone();
-    hpt_diff_unfold_rebin[i]->Scale(1.0/evcoll[i],"width");
+//    hpt_diff_unfold_rebin[i]=(TH1D*)hpt_diff_unfold[i]->Rebin(nbins,Form("hpt_diff_unfold_rebin_%i",i),xbins);
+    hpt_diff_unfold_rebin[i]=(TH1D*)hpt_diff_unfold[i]->Clone();
+//    hpt_diff_unfold_rebin[i]->Scale(1.0/evcoll[i],"width");
 }
 
 TCanvas* c1=new TCanvas();

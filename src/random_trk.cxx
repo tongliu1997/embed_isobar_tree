@@ -36,10 +36,15 @@ void random_trk(events& dat, string _options) {
 //    TH1F* nmctrk_nontrans[eta_bins][ea_bins][vz_bins];
     TH1F* match_mc_pt[eta_bins][ea_bins][vz_bins];
     TH2F* mc_reco_pt[eta_bins][ea_bins][vz_bins];
+    TH2F* mc_dev_pt[eta_bins][ea_bins][vz_bins];
     TH1F* gen_mc_pt[eta_bins][ea_bins][vz_bins];
     TH1F* notrans_match_mc_pt[eta_bins][ea_bins][vz_bins];
     TH2F* notrans_mc_reco_pt[eta_bins][ea_bins][vz_bins];
     TH1F* notrans_gen_mc_pt[eta_bins][ea_bins][vz_bins];
+
+    
+
+
 //
 //The "notrans_" tag selects the near & recoil side MC tracks for effeciency study
 //
@@ -48,6 +53,7 @@ void random_trk(events& dat, string _options) {
 	    for(int k=0;k<vz_bins;k++){
 //		nmctrk_nontrans[i][j][k]=new TH1F(Form("nmctrk_nontrans_%i_%i_%i",i,j,k),"Number of MC tracks in the accepted region",ntrk_bin,ntrk_min,ntrk_max);
 		mc_reco_pt[i][j][k]=new TH2F(Form("mc_reco_pt_%i_%i_%i",i,j,k),"MC vs reco pt;MC pt;Reco pt",pt_bin,pt_min,pt_max,pt_bin,pt_min,pt_max);
+		mc_dev_pt[i][j][k]=new TH2F(Form("mc_dev_pt_%i_%i_%i",i,j,k),"MC pt vs deviation;MC pt;Deviation",pt_bin,pt_min,pt_max,pt_bin,-0.5,0.5);
 		match_mc_pt[i][j][k]=new TH1F(Form("match_mc_pt_%i_%i_%i",i,j,k),"Matched MC pt;MC pt;count",pt_bin,pt_min,pt_max);
 		gen_mc_pt[i][j][k]=new TH1F(Form("gen_mc_pt_%i_%i_%i",i,j,k),"Generated MC pt;MC pt;count",pt_bin,pt_min,pt_max);
 		notrans_mc_reco_pt[i][j][k]=new TH2F(Form("notrans_mc_reco_pt_%i_%i_%i",i,j,k),"MC vs reco pt;MC pt;Reco pt",pt_bin,pt_min,pt_max,pt_bin,pt_min,pt_max);
@@ -144,6 +150,9 @@ void random_trk(events& dat, string _options) {
 //	    TH1F* gen_mc_pt[lumi_bins][ea_bins][vz_bins];
 	    float reco_pt=dat.track_pt[mc_trk_id];
 	    mc_reco_pt[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_pt,reco_pt);
+	    double deviation=reco_pt/mc_pt-1;
+	    mc_dev_pt[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_pt,deviation);
+	
 	    match_mc_pt[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_pt);
 	    if(!mc_is_trans){
 		notrans_mc_reco_pt[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_pt,reco_pt);
@@ -162,6 +171,7 @@ void random_trk(events& dat, string _options) {
 	    for(int k=0;k<vz_bins;k++){
 //		nmctrk_nontrans[i][j][k]->Write();
 		mc_reco_pt[i][j][k]->Write();
+		mc_dev_pt[i][j][k]->Write();
 		match_mc_pt[i][j][k]->Write();
 		gen_mc_pt[i][j][k]->Write();
 		notrans_mc_reco_pt[i][j][k]->Write();
