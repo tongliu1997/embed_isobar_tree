@@ -44,6 +44,7 @@ public:
 
 //    TH1F* nmctrk_nontrans[lumi_bins][ea_bins][vz_bins];
     TH2F* mc_reco_pt[lumi_bins][ea_bins][vz_bins];
+    TH2F* mc_dev_pt[lumi_bins][ea_bins][vz_bins];
     TH1F* gen_mc_pt[lumi_bins][ea_bins][vz_bins];
     TH1F* match_mc_pt[lumi_bins][ea_bins][vz_bins];
     TH2F* notrans_mc_reco_pt[lumi_bins][ea_bins][vz_bins];
@@ -106,13 +107,8 @@ double species_plots::obs_max=30;
 species_plots::species_plots(string inputname_str,string input_keyword,string name_keyword,const string obs){
     TH1::SetDefaultSumw2(true);
     TH2::SetDefaultSumw2(true);
- /*       pt_bins=90;
-        pt_min=0;
-    	pt_max=18;
-    	ntrk_bins=10;
-    	ntrk_min=-0.5;
-    	ntrk_max=9.5;
-*/
+
+
     cout<<"Reading in file "<<inputname_str<<endl;
     TFile* inputfile=new TFile(inputname_str.c_str());
 //  string inputname_str(inputname);
@@ -139,6 +135,8 @@ species_plots::species_plots(string inputname_str,string input_keyword,string na
 
                 mc_reco_pt[i][j][k]=(TH2F*)inputfile->Get(Form("mc_reco_%s_%s",obs.c_str(),in_token.c_str()));
 	 	mc_reco_pt[i][j][k]->SetName(Form("mc_reco_%s_%s",obs.c_str(),name_token.c_str()));
+                mc_dev_pt[i][j][k]=(TH2F*)inputfile->Get(Form("mc_dev_%s_%s",obs.c_str(),in_token.c_str()));
+	 	mc_dev_pt[i][j][k]->SetName(Form("mc_dev_%s_%s",obs.c_str(),name_token.c_str()));
                 gen_mc_pt[i][j][k]=(TH1F*)inputfile->Get(Form("gen_mc_%s_%s",obs.c_str(),in_token.c_str()));
                 gen_mc_pt[i][j][k]->SetName(Form("gen_mc_%s_%s",obs.c_str(),name_token.c_str()));
                 match_mc_pt[i][j][k]=(TH1F*)inputfile->Get(Form("match_mc_%s_%s",obs.c_str(),in_token.c_str()));
@@ -223,6 +221,7 @@ species_plots::species_plots(bool make_new_plots, const string keyword, const st
 		const string name_token ( ( keyword =="") ? Form("%i_%i_%i",i,j,k):Form("%i_%i_%i_%s",i,j,k,keyword.c_str()) ) ;
 
 		mc_reco_pt[i][j][k]=new TH2F(Form("mc_reco_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max,obs_bins,obs_min,obs_max);
+		mc_dev_pt[i][j][k]=new TH2F(Form("mc_dev_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max,obs_bins,-0.5,0.5);
 		gen_mc_pt[i][j][k]=new TH1F(Form("gen_mc_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max);
 		match_mc_pt[i][j][k]=new TH1F(Form("match_mc_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max);
 		notrans_match_mc_pt[i][j][k]=new TH1F(Form("notrans_match_mc_%s_%s",obs.c_str(),name_token.c_str()),"",obs_bins,obs_min,obs_max);
@@ -251,6 +250,7 @@ species_plots::~species_plots() {
     	for(int j=0;j<ea_bins;j++){
             for(int k=0;k<vz_bins;k++){
                 delete mc_reco_pt[i][j][k];
+                delete mc_dev_pt[i][j][k];
                 delete gen_mc_pt[i][j][k];
                 delete match_mc_pt[i][j][k];
 
@@ -279,6 +279,7 @@ void species_plots::scale(double factor){
 	    for(int k=0;k<vz_bins;k++){
 //		nmctrk_nontrans[i][j][k]->Scale(factor);	
 		mc_reco_pt[i][j][k]->Scale(factor);	
+		mc_dev_pt[i][j][k]->Scale(factor);	
 		gen_mc_pt[i][j][k]->Scale(factor);	
 		match_mc_pt[i][j][k]->Scale(factor);	
 
@@ -307,6 +308,7 @@ void species_plots::add(const species_plots &c1, double factor){
 //		nmctrk_nontrans[i][j][k]->Add(c1.nmctrk_nontrans[i][j][k],factor);	
 
 		mc_reco_pt[i][j][k]->Add(c1.mc_reco_pt[i][j][k],factor);	
+		mc_dev_pt[i][j][k]->Add(c1.mc_dev_pt[i][j][k],factor);	
 
 		gen_mc_pt[i][j][k]->Add(c1.gen_mc_pt[i][j][k],factor);	
 		match_mc_pt[i][j][k]->Add(c1.match_mc_pt[i][j][k],factor);	
@@ -352,6 +354,7 @@ void species_plots::write(TFile* output){
 	    for(int k=0;k<vz_bins;k++){
 //		nmctrk_nontrans[i][j][k]->Write();
 		mc_reco_pt[i][j][k]->Write();
+		mc_dev_pt[i][j][k]->Write();
 		match_mc_pt[i][j][k]->Write();
 		gen_mc_pt[i][j][k]->Write();
 
