@@ -79,6 +79,24 @@ return augmented;
 }
 
 
+TH2F** augment_dev(TH1F** wt1d){
+TH2F** augmented=(TH2F**)malloc(sizeof(TH2F*)*6);
+for(int ifile=0;ifile<6;ifile++){
+    augmented[ifile]=new TH2F(Form("augmented_dev_%i",ifile),"",species_plots::obs_bins,species_plots::obs_min,species_plots::obs_max,species_plots::obs_bins,-0.5,0.5);
+    for(int ibin=1;ibin<=species_plots::obs_bins;ibin++){
+    	for(int jbin=1;jbin<species_plots::obs_bins;jbin++){
+	    double entry=wt1d[ifile]->GetBinContent(ibin);
+	    augmented[ifile]->SetBinContent(ibin,jbin,entry);
+	    augmented[ifile]->SetBinError(ibin,jbin,0);
+	}
+    }
+}
+
+return augmented;
+}
+
+
+
 
 void blending(
 		const char* weightname="species_weight.txt",
@@ -89,6 +107,7 @@ void blending(
 //double wt[151][6];
 TH1F** wt=read_weight(weightname);
 TH2F** wt_2d=augment(wt);
+TH2F** wt_dev=augment_dev(wt);
 
 
 TCanvas* c1=new TCanvas();
@@ -131,6 +150,7 @@ for(int ifile=0;ifile<nspecies;ifile++){
 	    	mspecies.match_mc_pt[i][j][k]->Multiply(wt[ifile]);
 	    	mspecies.reco_pt[i][j][k]->Multiply(wt[ifile]);
 		mspecies.mc_reco_pt[i][j][k]->Multiply(wt_2d[ifile]);
+		mspecies.mc_dev_pt[i][j][k]->Multiply(wt_dev[ifile]);
 		
 	    }
 	}
@@ -151,36 +171,6 @@ for(int i=0;i<6;i++){
 
 blended.write("isobar_trk_eff_ptmix_blend.root");
 
-/*
-species_plots blended(true,"blended");
-
-for(int i=0;i<species_plots::lumi_bins;i++){
-    for(int j=0;j<species_plots::ea_bins;j++){
-	for(int k=0;k<species_plots::vz_bins;k++){
-	    for(int ifile=0;ifile<nspecies;ifile++){
-		species[ifile]->gen_mc_pt[i][j][k]->Multiply(wt[ifile]);
-	    	species[ifile]->match_mc_pt[i][j][k]->Multiply(wt[ifile]);
-	    	species[ifile]->reco_pt[i][j][k]->Multiply(wt[ifile]);
-		species[ifile]->mc_reco_pt[i][j][k]->Multiply(wt_2d[ifile]);
-	    }
-	}
-    }
-}
-
-
-for(int ifile=0;ifile<nspecies;ifile++) blended.add(*species[ifile]);
-
-
-
-TFile* output = new TFile("isobar_trk_eff_ptmix_blend.root","recreate");
-
-blended.write(output);
-
-
-
-
-output->Close();
-*/
 return;
 
 } 
