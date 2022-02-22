@@ -207,6 +207,125 @@ return match_stack(species,stack_dim,stack_bin);
 }
 
 
+
+TH2F** dev_stack(
+const species_plots &species,
+int stack_dim=2,
+std::vector<int> stack_bin={0,1,2,3,4}
+){
+
+string obs(species.m_obs==pt?"pt":"phi");
+int stack_size=stack_bin.size()-1;
+TH2F** dev_diff=(TH2F**)malloc(sizeof(TH1F*)*stack_size);
+
+for(int ibin=0;ibin<stack_size;ibin++){
+
+    int start_dim[3]={stack_bin[ibin],0,0};    
+    int si=start_dim[stack_dim];
+    int sj=start_dim[(stack_dim+1)%3];
+    int sk=start_dim[(stack_dim+2)%3];
+
+    char* hist_name;
+    const char* namekey=species.namestr.c_str(); 
+    if(stack_dim==0) hist_name=Form("%s track MC eta %.1f to %.1f",namekey, -1.+0.5*stack_bin[ibin],-1.+0.5*stack_bin[ibin+1]);
+    if(stack_dim==1) hist_name=Form("%s EA %i%% to %i%%",namekey,(17-stack_bin[ibin+1])*5,(17-stack_bin[ibin])*5 );
+    if(stack_dim==2) hist_name=Form("%s vz %i to %i",namekey,stack_bin[ibin]*15-35,stack_bin[ibin+1]*15-35 );
+
+    dev_diff[ibin]=(TH2F*)species.mc_dev_pt[si][sj][sk]->Clone();
+    dev_diff[ibin]->SetTitle(hist_name);
+    dev_diff[ibin]->SetName(hist_name);
+
+    int bin_size[3]={species.lumi_bins,species.ea_bins,species.vz_bins};
+    int ibins=bin_size[stack_dim],jbins=bin_size[(stack_dim+1)%3],kbins=bin_size[(stack_dim+2)%3];
+
+    for(int j=0;j<jbins;j++){
+	for(int k=0;k<kbins;k++){
+	    for(int i=stack_bin[ibin];i<stack_bin[ibin+1];i++){
+		if(!(i==stack_bin[ibin] && j==0 && k==0)) {
+		    int rot_pos[3]={i,j,k};
+		    int ai=rot_pos[(3-stack_dim)%3];
+		    int aj=rot_pos[(4-stack_dim)%3];
+		    int ak=rot_pos[(5-stack_dim)%3];
+		    dev_diff[ibin]->Add(species.mc_dev_pt[ai][aj][ak]);
+		}
+	    }
+	}
+    }
+
+    dev_diff[ibin]->SetLineWidth(2);
+    dev_diff[ibin]->SetXTitle(obs.c_str());
+    dev_diff[ibin]->SetYTitle("#delta p_{T}/p_{T}");
+    
+}
+
+return dev_diff;
+
+}
+
+
+
+TH2F** resp_stack(
+const species_plots &species, 
+int stack_dim=2,
+std::vector<int> stack_bin={0,1,2,3,4}
+){
+
+string obs(species.m_obs==pt?"pt":"phi");
+int stack_size=stack_bin.size()-1;
+TH2F** resp_diff=(TH2F**)malloc(sizeof(TH1F*)*stack_size);
+
+for(int ibin=0;ibin<stack_size;ibin++){
+
+    int start_dim[3]={stack_bin[ibin],0,0};    
+    int si=start_dim[stack_dim];
+    int sj=start_dim[(stack_dim+1)%3];
+    int sk=start_dim[(stack_dim+2)%3];
+
+    char* hist_name;
+    const char* namekey=species.namestr.c_str(); 
+    if(stack_dim==0) hist_name=Form("%s track MC eta %.1f to %.1f",namekey, -1.+0.5*stack_bin[ibin],-1.+0.5*stack_bin[ibin+1]);
+    if(stack_dim==1) hist_name=Form("%s EA %i%% to %i%%",namekey,(17-stack_bin[ibin+1])*5,(17-stack_bin[ibin])*5 );
+    if(stack_dim==2) hist_name=Form("%s vz %i to %i",namekey,stack_bin[ibin]*15-35,stack_bin[ibin+1]*15-35 );
+
+    resp_diff[ibin]=(TH2F*)species.mc_reco_pt[si][sj][sk]->Clone();
+    resp_diff[ibin]->SetTitle(hist_name);
+    resp_diff[ibin]->SetName(hist_name);
+
+    int bin_size[3]={species.lumi_bins,species.ea_bins,species.vz_bins};
+    int ibins=bin_size[stack_dim],jbins=bin_size[(stack_dim+1)%3],kbins=bin_size[(stack_dim+2)%3];
+
+    for(int j=0;j<jbins;j++){
+	for(int k=0;k<kbins;k++){
+	    for(int i=stack_bin[ibin];i<stack_bin[ibin+1];i++){
+		if(!(i==stack_bin[ibin] && j==0 && k==0)) {
+		    int rot_pos[3]={i,j,k};
+		    int ai=rot_pos[(3-stack_dim)%3];
+		    int aj=rot_pos[(4-stack_dim)%3];
+		    int ak=rot_pos[(5-stack_dim)%3];
+		    resp_diff[ibin]->Add(species.mc_reco_pt[ai][aj][ak]);
+		}
+	    }
+	}
+    }
+
+    resp_diff[ibin]->SetLineWidth(2);
+    resp_diff[ibin]->SetXTitle(obs.c_str());
+    resp_diff[ibin]->SetYTitle("Reconstructed");
+    
+}
+
+return resp_diff;
+
+}
+
+
+
+
+
+
+
+
+
 TCanvas* embed_species(
 const string filename="noembed_random_trk_proton.root",
 //string keyword_str="proton",

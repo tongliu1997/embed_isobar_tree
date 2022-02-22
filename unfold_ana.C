@@ -46,8 +46,8 @@ double nevts_diff[nstack-1],evcoll[nstack-1];
 for(int i=0;i<nstack-1;i++){
 //    htrackpT_cent->GetXaxis()->SetRangeUser(0,18);
     hpt_diff[i]=(TH1D*)htrackpT_cent->ProjectionX(Form("hpt_diff_%i",i),data_stack_bin[i+1],data_stack_bin[i]-1,"");
-    nevts_diff[nstack-1]=0;
-    evcoll[nstack-1]=0;
+    nevts_diff[i]=0;
+    evcoll[i]=0;
     for(int j=data_stack_bin[i+1];j<data_stack_bin[i];j++){
 	nevts_diff[i]+=nev_cent->GetBinContent(j);
 	evcoll[i]+=nev_cent->GetBinContent(j)*ncoll_bins[j-2];	
