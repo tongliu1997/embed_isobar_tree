@@ -150,7 +150,8 @@ void random_trk(events& dat, string _options) {
 //	    TH1F* gen_mc_pt[lumi_bins][ea_bins][vz_bins];
 	    float reco_pt=dat.track_pt[mc_trk_id];
 	    mc_reco_pt[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_pt,reco_pt);
-	    double deviation=reco_pt/mc_pt-1;
+	    double deviation=mc_pt/reco_pt-1;
+		//1/pt is the true Gaussian distribution
 	    mc_dev_pt[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_pt,deviation);
 	
 	    match_mc_pt[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_pt);

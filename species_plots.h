@@ -64,7 +64,7 @@ public:
     virtual ~species_plots();
     virtual void scale(double factor);
     virtual void add(const species_plots &c1,double factor=1);
-
+    virtual void mc_cutoff(double x);
     double n_events();//This returns the SCALED number of events; i.e. if an event is scaled by 3 then it's counted as 3 events.
     virtual void normalize();
 
@@ -75,9 +75,6 @@ public:
 private:
 
     void set_bins();
-    
-
-
 
 };
 
@@ -333,6 +330,46 @@ void species_plots::add(const species_plots &c1, double factor){
     return;
 }
 
+
+void species_plots::mc_cutoff(double x){
+  
+    for(int i=0;i<lumi_bins;i++){
+	for(int j=0;j<ea_bins;j++){
+	    for(int k=0;k<vz_bins;k++){
+		for(int ibin=1;ibin<obs_bins;ibin++){
+		    if(gen_mc_pt[i][j][k]->GetXaxis()->GetBinCenter(ibin)>x){
+		    	gen_mc_pt[i][j][k]->SetBinContent(ibin,0);
+		    	match_mc_pt[i][j][k]->SetBinContent(ibin,0);
+		    	notrans_gen_mc_pt[i][j][k]->SetBinContent(ibin,0);
+		    	notrans_match_mc_pt[i][j][k]->SetBinContent(ibin,0);
+				
+		    	gen_mc_pt[i][j][k]->SetBinError(ibin,0);
+		    	match_mc_pt[i][j][k]->SetBinError(ibin,0);
+		    	notrans_gen_mc_pt[i][j][k]->SetBinError(ibin,0);
+		    	notrans_match_mc_pt[i][j][k]->SetBinError(ibin,0);
+			for(int jbin=1;jbin<obs_bins;jbin++){
+		    	    mc_reco_pt[i][j][k]->SetBinContent(ibin,jbin,0);
+		    	    notrans_mc_reco_pt[i][j][k]->SetBinContent(ibin,jbin,0);
+		    	    mc_dev_pt[i][j][k]->SetBinContent(ibin,jbin,0);
+		    	    mc_reco_pt[i][j][k]->SetBinError(ibin,jbin,0);
+		    	    notrans_mc_reco_pt[i][j][k]->SetBinError(ibin,jbin,0);
+		    	    mc_dev_pt[i][j][k]->SetBinError(ibin,jbin,0);
+			}
+		    }
+		}
+		reco_pt[i][j][k]=(TH1F*)mc_reco_pt[i][j][k]->ProjectionY();
+                notrans_reco_pt[i][j][k]=(TH1F*) notrans_mc_reco_pt[i][j][k]->ProjectionY();
+
+                pt_efficiency[i][j][k]=(TH1F*)reco_pt[i][j][k]->Clone();
+                pt_efficiency[i][j][k]->Divide(gen_mc_pt[i][j][k]);
+                pt_efficiency[i][j][k]->SetTitle(Form("pt_efficiency_%i_%i_%i",i,j,k));
+		
+	    }
+	}
+    }
+
+
+}
 
 double species_plots::n_events(){
 

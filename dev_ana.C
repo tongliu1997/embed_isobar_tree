@@ -26,11 +26,9 @@ for(int i=0;i<5;i++){
 	disect[i][j]->Draw("same PLC PLM");
     }
 
-//    c4->SetLogz();
-//    devs[i]->GetXaxis()->SetRangeUser(0,20);
-//    devs[i]->Draw("colz");
+
 }
-//c4->Draw();
+
 
 TCanvas* c0=new TCanvas("c0");
 c0->Divide(3,2);
@@ -45,3 +43,4 @@ for(int i=0;i<5;i++){
 
 
 }
+
