@@ -1,9 +1,9 @@
 #include "unfold_funcs.h"
 #include "../isobar_hist_process/isobar_hist.h"
 void ibu_fulldata(
-const char* data_name="/gpfs/loomis/project/caines/tl543/Isobar_Hist/zr_hadd.root",
+const char* data_name="/gpfs/loomis/project/caines/tl543/Isobar_Hist/ru_hadd.root",
 //const char* data_name="/gpfs/loomis/project/caines/tl543/Isobar_Hist/ru_files_hadd/ru_hadd_1.root",
-int iszr=1,
+int iszr=0,
 const int niter=2
 ){
 TH1::SetDefaultSumw2(true);
