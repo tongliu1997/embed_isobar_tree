@@ -133,7 +133,8 @@ void random_trk(events& dat, string _options) {
  	if(debug_level) cout<<"Number of MC tracks is "<<nmctrk<<endl;
 	for(int i=0;i<nmctrk;i++){
 	    short mc_trk_id=dat.mc_track_id[i];
-	    float mc_pt=dat.mc_track_pt[i]; 
+	    float mc_pt=dat.mc_track_pt[i];
+	    if(mc_pt>20)continue; 
 	    float mc_eta=dat.mc_track_eta[i];
 	    int   ibin_eta=define_bin(mc_eta,eta_bound);
 	    gen_mc_pt[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_pt);

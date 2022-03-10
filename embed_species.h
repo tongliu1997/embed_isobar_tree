@@ -23,9 +23,6 @@ return ibin;
 }
 
 
-
-
-
 TH1F** embed_stack(
 const species_plots &species,
 int stack_dim=2,
@@ -121,7 +118,8 @@ return embed_stack(species,stack_dim,stack_bin);
 TH1F** match_stack(
 const species_plots &species,
 int stack_dim=2,
-std::vector<int> stack_bin={0,1,2,3,4}
+std::vector<int> stack_bin={0,1,2,3,4},
+bool pt_rebin=true
 ){
 
 string obs(species.m_obs==pt?"pt":"phi");
@@ -160,7 +158,7 @@ for(int ibin=0;ibin<stack_size;ibin++){
 	}
     }
 
-    if(species.m_obs==pt){
+    if(species.m_obs==pt && pt_rebin){
 	eff_diff[ibin]=(TH1F*)match_diff[ibin]->Rebin(nbins,Form("rebin_%i",ibin),xbins);
 	eff_diff[ibin]->Divide((TH1F*)gen_diff[ibin]->Rebin(nbins,Form("gen_rebin_%i",ibin),xbins));
     }
@@ -189,25 +187,23 @@ return eff_diff;
 }
 
 
-
-
 TH1F** match_stack(
 const string filename="out-data/hadd_random_trk_proton.root",
 int stack_dim=2,
 std::vector<int> stack_bin={0,1,2,3,4},
 string inkey_str="",
 string namekey_str="proton",
-string obs="pt"
+string obs="pt",
+bool pt_rebin=true
 ){
 cout<<"Inkey is "<<inkey_str<<endl;
 cout<<filename<<"\t"<<inkey_str<<"\t"<<namekey_str<<endl;
 
 species_plots species(filename,inkey_str,namekey_str,obs);
 
-return match_stack(species,stack_dim,stack_bin);
+return match_stack(species,stack_dim,stack_bin,pt_rebin);
 
 }
-
 
 
 TH2F** dev_stack(
@@ -310,7 +306,7 @@ for(int ibin=0;ibin<stack_size;ibin++){
 	}
     }
 
-    resp_diff[ibin]->SetLineWidth(2);
+//    resp_diff[ibin]->SetLineWidth(2);
     resp_diff[ibin]->SetXTitle(obs.c_str());
     resp_diff[ibin]->SetYTitle("Reconstructed");
     
@@ -319,8 +315,6 @@ for(int ibin=0;ibin<stack_size;ibin++){
 return resp_diff;
 
 }
-
-
 
 
 
