@@ -15,6 +15,13 @@ std::vector<int> data_stack_bin;//Centrality bins used for real data extraction
 
 
 const int nstack=centrality.size()-1;
+TH1D* ncoll_bin;
+TH1D* npart_bin;
+
+ncoll_bin=new TH1D("ncoll","",nstack,-0.5,nstack-0.5);
+npart_bin=new TH1D("npart","",nstack,-0.5,nstack-0.5);
+
+
 for(int i=0;i<=nstack;i++){
     embed_stack_bin.push_back(17-centrality[i]/5);
     data_stack_bin.push_back(centrality[nstack-i]/5);
@@ -40,7 +47,7 @@ TH1D* unfolded_spec[niter+1][nstack];
 TH2F* resp_iter[niter+1][nstack];
 TH1F* trk_eff[niter+1][nstack];
 
-double nevts_diff[nstack],evcoll[nstack];
+double nevts_diff[nstack],evcoll[nstack],evcoll_err[nstack],evpart[nstack],evpart_err[nstack];
 
 isobar_hist tester(data_name);
 TH1D** hpt_diff_reverse=tester.stack(data_stack_bin,0,pt);
@@ -52,9 +59,17 @@ for(int i=0;i<nstack;i++){
     for(int j=data_stack_bin[nstack-1-i];j<data_stack_bin[nstack-i];j++){
 	nevts_diff[i]+=tester.nev_bins(j);
 	evcoll[i]+=tester.nev_bins(j)*ncoll_bins[iszr][j];
+	evcoll_err[i]+=tester.nev_bins(j)*ncoll_err[iszr][j];
+	evpart[i]+=tester.nev_bins(j)*npart_bins[iszr][j];
+	evpart_err[i]+=tester.nev_bins(j)*npart_err[iszr][j];
     }
 
     cout<<data_stack_bin[nstack-1-i]<<"\t"<<data_stack_bin[nstack-i]<<"\t"<<nevts_diff[i]<<"\t"<<evcoll[i]/nevts_diff[i]<<endl;
+    ncoll_bin->SetBinContent(i+1,evcoll[i]/nevts_diff[i]); 
+    ncoll_bin->SetBinError(i+1,evcoll_err[i]/nevts_diff[i]);
+    npart_bin->SetBinContent(i+1,evpart[i]/nevts_diff[i]);
+    npart_bin->SetBinError(i+1,evpart_err[i]/nevts_diff[i]);
+
     unfolded_spec[0][i]=(TH1D*)hpt_diff[i]->Clone();
 //    resp_iter[0][i]=(TH2F*)resp[i]->Clone();
     resp_iter[0][i]=outlier_trim(resp[i]);
@@ -78,7 +93,8 @@ for(int i=0;i<nstack;i++){
 	unfolded_rebin[iter][i]=(TH1D*)unfolded_spec[iter][i]->Rebin(nbins,Form("rebin_spec_%i_%i",iter,i),xbins);
 //	unfolded_rebin[iter][i]=(TH1D*)unfolded_spec[iter][i]->Clone();
 //	unfolded_rebin[iter][i]->SetName(Form("spec_unfold_rebin_%i_%i"));
-	unfolded_rebin[iter][i]->Scale(1./evcoll[i],"width");
+//	unfolded_rebin[iter][i]->Scale(1./evcoll[i],"width");
+	unfolded_rebin[iter][i]->Scale(1./nevts_diff[i],"width");
 //	if(iter>0)
 //	    unfolded_rebin[iter][i]->Divide(match[i]);
     }
@@ -147,10 +163,6 @@ for(int i=1;i<=rcp_offset->GetNbinsX();i++){
     
 }
 
-
-
-
-
 for(int iter=0;iter<=niter;iter++){
     rcp_iter[iter]=(TH1D*)unfolded_rebin[iter][nstack-1]->Clone();
     rcp_iter[iter]->Divide(unfolded_rebin[iter][0]);
@@ -177,5 +189,8 @@ for(int i=0;i<nstack;i++){
     unfolded_rebin[niter][i]->Write();
     unfolded_rebin[0][i]->Write();
 }
+ncoll_bin->Write();    
+npart_bin->Write();
+
 output->Close();
 }
