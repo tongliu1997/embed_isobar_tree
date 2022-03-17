@@ -24,7 +24,8 @@ TH2D* truth_augment(TH2F* resp_mtx,TH1D* spec){
 	}
 	for(int j=1;j<=nbins;j++){
 	    augmented->SetBinContent(i,j,value);
-	    augmented->SetBinError(i,j,error);
+//	    augmented->SetBinError(i,j,error);
+	    augmented->SetBinError(i,j,0);
 	}
     }    
     return augmented;
@@ -36,14 +37,11 @@ TH2D* truth_augment(TH2F* resp_mtx,TH1D* spec){
     int xmax=resp_mtx->GetXaxis()->GetBinLowEdge(nbins)+resp_mtx->GetXaxis()->GetBinWidth(nbins);
     for(int i=1;i<=nbins;i++){
 	double entries=resp_mtx->ProjectionY(Form("slice_"))
-
     }
-
 }
 */
 
-
-TH2F* outlier_trim(TH2F* resp){
+TH2F* outlier_trim(TH2F* resp,bool debug=false){
     TH2F* result=(TH2F*)resp->Clone();
     int nbins=result->GetNbinsX();
 
@@ -56,10 +54,13 @@ TH2F* outlier_trim(TH2F* resp){
 		result->SetBinError(j,i,0);
 		continue;
 	    }
-	    if(result->GetBinContent(j,i)>MC_truth && result->GetBinError(j,i) >0.9*result->GetBinContent(j,i)){
+	    double content=result->GetBinContent(j,i);
+	    double error=result->GetBinError(j,i);
+	    double mcpt=result->GetXaxis()->GetBinCenter(j);
+	    if(error > 1./3* content || (mcpt < 5 && error > sqrt(1./54)*content ) ){
+//	    if(result->GetBinContent(j,i)>MC_truth && result->GetBinError(j,i) >0.9*result->GetBinContent(j,i)){
 //	    if(result->GetBinContent(j,i)>MC_truth*0.1 && result->GetBinError(j,i) >MC_truth){
-//	    if(1){
-//	 	cout<<"outlier_trim::"<<j<<"\t"<<i<<"\t"<<result->GetBinContent(j,i)<<"\t"<<result->GetBinError(j,i)<<endl;
+	 	if(debug)cout<<"outlier_trim::"<<result->GetXaxis()->GetBinCenter(j)<<"\t"<<result->GetYaxis()->GetBinCenter(i)<<"\t"<<result->GetBinContent(j,i)<<"\t"<<result->GetBinError(j,i)<<endl;
 		result->SetBinContent(j,i,0);
 		result->SetBinError(j,i,0);
 	    }
@@ -76,7 +77,7 @@ TH2F* resp_reweight(TH2F* resp_mtx,TH1D* spec,int iter){
     TH2D* aug_spec=truth_augment(resp_mtx,spec);
     resp_aug->Multiply(aug_spec);
     
-    TH2F* resp_return=outlier_trim(resp_aug);
+    TH2F* resp_return=outlier_trim(resp_aug,true);
 //    TH2F* resp_return=(TH2F*)resp_aug->Clone();
 
     resp_return->SetName(Form("%s_iter_%i",resp_mtx->GetName(),iter));
@@ -113,9 +114,6 @@ TH1D* spec_correct(TH1D* raw_spec,TH2F* resp_mtx,int iter){
     corrected->SetName(Form("%s_corrected_%i",raw_spec->GetName(),iter));
     TH1D* matched=(TH1D*)resp_mtx->ProjectionX();
     TH1D* reco=(TH1D*)resp_mtx->ProjectionY();
-//    cout<<"Iteration "<<i<<" Data"<<endl;
-//    cout<<
-
 
 
     matched->Divide(reco);
@@ -128,12 +126,12 @@ TH1F* tracking_efficiency(TH2F* resp_mtx,TH1F* matching_eff){
     TH1F* reco=(TH1F*)resp_mtx->ProjectionY();
     TH1F* match=(TH1F*)resp_mtx->ProjectionX();
     reco->SetTitle(Form("%s_efficiency",resp_mtx->GetName()));
-//    TH1F* reco_rebin=(TH1F*)reco->Rebin(nbins,Form("%s_efficiency_rebin",resp_mtx->GetName()),xbins);
-//    TH1F* match_rebin=(TH1F*)match->Rebin(nbins,Form("%s_match_rebin",resp_mtx->GetName()),xbins);
-    TH1F* reco_rebin=(TH1F*)reco->Clone();
-    reco_rebin->SetName(Form("%s_eff_clone",resp_mtx->GetName()));
-    TH1F* match_rebin=(TH1F*)match->Clone();
-    match_rebin->SetName(Form("%s_match_clone",resp_mtx->GetName()));
+    TH1F* reco_rebin=(TH1F*)reco->Rebin(nbins,Form("%s_efficiency_rebin",resp_mtx->GetName()),xbins);
+    TH1F* match_rebin=(TH1F*)match->Rebin(nbins,Form("%s_match_rebin",resp_mtx->GetName()),xbins);
+//    TH1F* reco_rebin=(TH1F*)reco->Clone();
+//    reco_rebin->SetName(Form("%s_eff_clone",resp_mtx->GetName()));
+//    TH1F* match_rebin=(TH1F*)match->Clone();
+//    match_rebin->SetName(Form("%s_match_clone",resp_mtx->GetName()));
 
     reco_rebin->Divide(match_rebin);
     reco_rebin->Multiply(matching_eff);

@@ -137,7 +137,7 @@ for(int ibin=0;ibin<stack_size;ibin++){
 
     gen_diff[ibin]=(TH1F*)species.gen_mc_pt[si][sj][sk]->Clone();
     gen_diff[ibin]->SetName(Form("gen_diff_%i",ibin));
-    match_diff[ibin]=(TH1F*)species.reco_pt[si][sj][sk]->Clone();
+    match_diff[ibin]=(TH1F*)species.match_mc_pt[si][sj][sk]->Clone();
     match_diff[ibin]->SetName(Form("match_diff_%i",ibin));
 
     int bin_size[3]={species.lumi_bins,species.ea_bins,species.vz_bins};
@@ -318,6 +318,96 @@ return resp_diff;
 
 
 
+TH2F** resp_stack_eta_restricted(
+//Designed only to do cent-binned stacking
+//Gotta think of a better solution later
+
+const species_plots &species, 
+std::vector<int> stack_bin,
+int etabin_start,
+int etabin_end
+){
+
+string obs(species.m_obs==pt?"pt":"phi");
+int stack_size=stack_bin.size()-1;
+TH2F** resp_diff=(TH2F**)malloc(sizeof(TH2F*)*stack_size);
+for(int jbin=0;jbin<stack_size;jbin++){
+    char* hist_name=Form("%s EA %i%% to %i%%",species.namestr.c_str(),(17-stack_bin[jbin+1])*5,(17-stack_bin[jbin])*5);
+    resp_diff[jbin]=(TH2F*)species.mc_reco_pt[etabin_start][stack_bin[jbin]][0]->Clone();
+    resp_diff[jbin]->SetTitle(hist_name);
+    resp_diff[jbin]->SetName(hist_name);
+    for(int i=etabin_start;i<=etabin_end;i++){
+	for(int j=stack_bin[jbin];j<stack_bin[jbin+1];j++){
+	    for(int k=0;k<species.vz_bins;k++){
+		if(!(i==etabin_start && j==stack_bin[jbin] && k==0)){
+		    resp_diff[jbin]->Add(species.mc_reco_pt[i][j][k]);
+		}
+	    }
+	}
+    }
+    resp_diff[jbin]->SetXTitle(obs.c_str());
+    resp_diff[jbin]->SetYTitle("Reconstructed");
+
+}
+
+return resp_diff;
+
+}
+
+
+
+
+TH1F** match_stack_eta_restricted(
+//Designed only to do cent-binned stacking
+//Gotta think of a better solution later
+
+const species_plots &species, 
+std::vector<int> stack_bin,
+int etabin_start,
+int etabin_end,
+bool pt_rebin
+){
+
+string obs(species.m_obs==pt?"pt":"phi");
+int stack_size=stack_bin.size()-1;
+
+TH1F* gen_diff[stack_size];
+TH1F* match_diff[stack_size];
+TH1F** eff_diff=(TH1F**)malloc(sizeof(TH1F*)*stack_size);
+for(int jbin=0;jbin<stack_size;jbin++){
+    gen_diff[jbin]=(TH1F*)species.gen_mc_pt[etabin_start][stack_bin[jbin]][0]->Clone();
+    match_diff[jbin]=(TH1F*)species.match_mc_pt[etabin_start][stack_bin[jbin]][0]->Clone();
+    for(int i=etabin_start;i<=etabin_end;i++){
+	for(int j=stack_bin[jbin];j<stack_bin[jbin+1];j++){
+	    for(int k=0;k<species.vz_bins;k++){
+		if(!(i==etabin_start && j==stack_bin[jbin] && k==0)){
+		    gen_diff[jbin]->Add(species.gen_mc_pt[i][j][k]);
+		    match_diff[jbin]->Add(species.match_mc_pt[i][j][k]);
+		}
+	    }
+	}
+    }
+
+    char* hist_name=Form("Match_Eff %s EA %i%% to %i%%",species.namestr.c_str(),(17-stack_bin[jbin+1])*5,(17-stack_bin[jbin])*5);
+    
+    if(species.m_obs==pt && pt_rebin){
+	eff_diff[jbin]=(TH1F*)match_diff[jbin]->Rebin(nbins,Form("rebin_%i",jbin),xbins);
+	eff_diff[jbin]->Divide((TH1F*)gen_diff[jbin]->Rebin(nbins,Form("gen_rebin_%i",jbin),xbins));
+    }
+    else{
+	eff_diff[jbin]=(TH1F*)match_diff[jbin]->Clone();
+    	eff_diff[jbin]->Divide(gen_diff[jbin]);
+    }
+    eff_diff[jbin]->SetTitle(hist_name);
+    eff_diff[jbin]->SetName(hist_name);
+    eff_diff[jbin]->SetXTitle(obs.c_str());
+    eff_diff[jbin]->SetYTitle("Reconstructed");
+
+}
+
+return eff_diff;
+
+}
 
 
 

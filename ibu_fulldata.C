@@ -1,11 +1,16 @@
 #include "unfold_funcs.h"
 #include "../isobar_hist_process/isobar_hist.h"
 void ibu_fulldata(
-const char* data_name="/gpfs/loomis/project/caines/tl543/Isobar_Hist/ru_hadd.root",
-//const char* data_name="/gpfs/loomis/project/caines/tl543/Isobar_Hist/ru_files_hadd/ru_hadd_1.root",
 int iszr=0,
+float eta_start=-1,
+float eta_end=1,
 const int niter=2
 ){
+
+const char* data_name=(iszr)?"/gpfs/loomis/project/caines/tl543/Isobar_Hist/zr_hadd.root":"/gpfs/loomis/project/caines/tl543/Isobar_Hist/ru_hadd.root";
+
+int etabin_start=2*eta_start+3;
+int etabin_end=2*eta_end+2;
 TH1::SetDefaultSumw2(true);
 TH2::SetDefaultSumw2(true);
 
@@ -37,10 +42,17 @@ const string filename="isobar_trk_eff_ptmix_blend.root";
 const string key="blended";
 species_plots species(filename,key,key,"pt");
 const int stack_dim=1;
-
+/*
 TH2F** resp=resp_stack(species,stack_dim,embed_stack_bin);//0th order response matrix
 TH1F** match=match_stack(species,stack_dim,embed_stack_bin);//Matching efficiency curve
 TH1F** match_norebin=match_stack(species,stack_dim,embed_stack_bin,false);//Matching efficiency curve
+*/
+
+TH2F** resp=resp_stack_eta_restricted(species,embed_stack_bin,etabin_start-1,etabin_end-1);
+TH1F** match=match_stack_eta_restricted(species,embed_stack_bin,etabin_start-1,etabin_end-1,true);
+TH1F** match_norebin=match_stack_eta_restricted(species,embed_stack_bin,etabin_start-1,etabin_end-1,false);
+
+
 
 TH1D* hpt_diff[nstack];
 TH1D* unfolded_spec[niter+1][nstack];
@@ -50,10 +62,11 @@ TH1F* trk_eff[niter+1][nstack];
 double nevts_diff[nstack],evcoll[nstack],evcoll_err[nstack],evpart[nstack],evpart_err[nstack];
 
 isobar_hist tester(data_name);
-TH1D** hpt_diff_reverse=tester.stack(data_stack_bin,0,pt);
+//TH1D** hpt_diff_reverse=tester.stack(data_stack_bin,0,0);
+TH3D** hpt_diff_reverse=tester.stack_3d(data_stack_bin,0);
 
 for(int i=0;i<nstack;i++){
-    hpt_diff[i]=hpt_diff_reverse[nstack-1-i];
+    hpt_diff[i]=(TH1D*)hpt_diff_reverse[nstack-1-i]->ProjectionX(Form("pt_stack_%i_%i",centrality[i+1],centrality[i]),etabin_start,etabin_end);
     nevts_diff[i]=0;
     evcoll[i]=0;
     for(int j=data_stack_bin[nstack-1-i];j<data_stack_bin[nstack-i];j++){
@@ -72,31 +85,40 @@ for(int i=0;i<nstack;i++){
 
     unfolded_spec[0][i]=(TH1D*)hpt_diff[i]->Clone();
 //    resp_iter[0][i]=(TH2F*)resp[i]->Clone();
-    resp_iter[0][i]=outlier_trim(resp[i]);
-    trk_eff[0][i]=tracking_efficiency(resp_iter[0][i],match_norebin[i]); 
+    resp_iter[0][i]=outlier_trim(resp[i],false);
+    trk_eff[0][i]=tracking_efficiency(resp_iter[0][i],match[i]); 
     for(int iter=0;iter<niter;iter++){
-    	resp_iter[iter+1][i]=resp_reweight(resp[i],unfolded_spec[iter][i],iter); 
- 	trk_eff[iter+1][i]=tracking_efficiency(resp_iter[iter+1][i],match_norebin[i]);
+    	resp_iter[iter+1][i]=resp_reweight(resp_iter[0][i],unfolded_spec[iter][i],iter); 
+ 	trk_eff[iter+1][i]=tracking_efficiency(resp_iter[iter+1][i],match[i]);
 	
 //    	unfolded_spec[iter+1][i]=spec_unfold(hpt_diff[i],resp_iter[iter+1][i],iter);   
     	unfolded_spec[iter+1][i]=spec_correct(hpt_diff[i],resp_iter[iter+1][i],iter);   
-//	cout<<unfolded_spec[iter+1][i]->GetNbinsX()<<"\t"<<match[i]->GetNbinsX()<<endl;
 //	unfolded_spec[iter+1][i]->Divide(match[i]);
     }
 }
+TCanvas* c_debug=new TCanvas();
+c_debug->Divide(3,2);
 
+
+TH1D* unfold_rebin_test[nstack];
 TH1D* unfolded_rebin[niter+1][nstack];
 for(int i=0;i<nstack;i++){
     for(int iter=0;iter<=niter;iter++){
 
 	if(iter>0)unfolded_spec[iter][i]->Divide(match_norebin[i]);
 	unfolded_rebin[iter][i]=(TH1D*)unfolded_spec[iter][i]->Rebin(nbins,Form("rebin_spec_%i_%i",iter,i),xbins);
-//	unfolded_rebin[iter][i]=(TH1D*)unfolded_spec[iter][i]->Clone();
-//	unfolded_rebin[iter][i]->SetName(Form("spec_unfold_rebin_%i_%i"));
-//	unfolded_rebin[iter][i]->Scale(1./evcoll[i],"width");
-	unfolded_rebin[iter][i]->Scale(1./nevts_diff[i],"width");
-//	if(iter>0)
-//	    unfolded_rebin[iter][i]->Divide(match[i]);
+	
+	if(iter==niter){
+	    c_debug->cd(i+1);
+	    unfolded_spec[iter][i]->DrawClone();
+	    unfold_rebin_test[i]=(TH1D*)unfolded_spec[iter][i]->Rebin(nbins,Form("rebin_test_%i_%i",iter,i),xbins);
+	    unfold_rebin_test[i]->Scale(0.05,"width");
+	    unfold_rebin_test[i]->SetLineColor(kRed);
+	    unfold_rebin_test[i]->DrawClone("same");
+	}
+
+
+	unfolded_rebin[iter][i]->Scale(1./(2*(eta_end-eta_start))/nevts_diff[i],"width");
     }
 }
 
@@ -107,27 +129,29 @@ for(int i=0;i<nstack;i++){
 	unfold_ratio[iter][i]->Divide(unfolded_rebin[niter][i]);
     }
 }
-/*
-TCanvas* c4=new TCanvas("c4","",1600,900);
-c4->Divide(3,2);
 
-for(int i=0;i<5;i++){
-//    cout<<resp[i]->GetNbinsX()<<endl; 
-    c4->cd(i+1);
+//TCanvas* c4=new TCanvas("c4","",1600,900);
+//c4->Divide(3,2);
+
+//for(int i=0;i<5;i++){
+//    c4->cd(i+1);
 
 //    resp[i]->GetXaxis()->SetRangeUser(0,20);
-    resp[i]->Draw("colz");
-}
-*/
+//    resp[i]->Draw("colz");
+//}
 //c4->Draw();
 gStyle->SetPalette(kValentine);
 TCanvas* c0=new TCanvas("c0","",1600,900);
 c0->Divide(3,2);
+
+TH1D* unfold_plot[niter+1][5];
 for(int i=0;i<5;i++){
     c0->cd(i+1);
     for(int it=0;it<=niter;it++){
-    	unfolded_rebin[it][i]->GetXaxis()->SetRangeUser(0,15);
-    	unfolded_rebin[it][i]->Draw("same PLC PLM");
+	unfold_plot[it][i]=(TH1D*)(unfolded_rebin[it][i]->Clone());
+    	unfold_plot[it][i]->GetXaxis()->SetRangeUser(0,20);
+    	unfold_plot[it][i]->Divide(unfolded_rebin[niter][i]);
+    	unfold_plot[it][i]->Draw("same PLC PLM");
     }
 }
 TCanvas* c1=new TCanvas("ratio");
@@ -177,8 +201,9 @@ for(int iter=0;iter<=niter;iter++){
 }
 
 lg->Draw();
+/*
 
-string outname=(iszr)?"outhist_zr.root":"outhist_ru.root";
+string outname=(iszr)?Form("outhist_zr_%i_%i.root",etabin_start,etabin_end):Form("outhist_ru_%i_%i.root",etabin_start,etabin_end);
 TFile* output=new TFile(outname.c_str(),"recreate");
 string system=(iszr)?"zr":"ru";
 for(int i=0;i<nstack;i++){
@@ -193,4 +218,6 @@ ncoll_bin->Write();
 npart_bin->Write();
 
 output->Close();
+
+*/
 }
