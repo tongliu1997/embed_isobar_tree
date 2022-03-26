@@ -7,6 +7,7 @@ double ncoll_err[2][16]=
 {{9.7825,4.8359,3.2789,2.3979,1.9251,1.3474,1.1076,0.7347,0.5115,0.3755,0.2409,0.1828,0.1214,0.0899,0.0448,0.0325},{9.6667,4.5151,3.0232,2.2238,1.6972,1.2782,0.9063,0.6411,0.4737,0.3329,0.2128,0.1234,0.116,0.0739,0.048,0.0431}};
 
 double npart_bins[2][16]={{166.76,147.54,125.67,106.66,90.42,76.07,63.89,53.35,43.87,35.79,28.83,22.72,17.83,13.89,10.57,8.05},{165.93,146.51,124.49,105.17,88.91,74.76,62.17,51.18,41.90,34.01,27.29,21.77,17.14,13.16,9.80,7.32}};
+
 double npart_err[2][16]={{0.10541,0.99967,0.91996,0.763,0.54546,0.4547,0.26448,0.22901,0.17927,0.1103,0.09156,0.06682,0.04334,0.03326,0.02328,0.01562},{0.08702,0.98141,0.88844,0.68516,0.50607,0.38555,0.28025,0.22111,0.13392,0.09793,0.07122,0.06506,0.06675,0.04105,0.02941,0.02726}};
 
 TH2D* truth_augment(TH2F* resp_mtx,TH1D* spec){
@@ -60,7 +61,7 @@ TH2F* outlier_trim(TH2F* resp,bool debug=false){
 	    if(error > 1./3* content || (mcpt < 5 && error > sqrt(1./54)*content ) ){
 //	    if(result->GetBinContent(j,i)>MC_truth && result->GetBinError(j,i) >0.9*result->GetBinContent(j,i)){
 //	    if(result->GetBinContent(j,i)>MC_truth*0.1 && result->GetBinError(j,i) >MC_truth){
-	 	if(debug)cout<<"outlier_trim::"<<result->GetXaxis()->GetBinCenter(j)<<"\t"<<result->GetYaxis()->GetBinCenter(i)<<"\t"<<result->GetBinContent(j,i)<<"\t"<<result->GetBinError(j,i)<<endl;
+	 	if(debug)cout<<"outlier_trim::"<<result->GetXaxis()->GetBinCenter(j)<<"\t"<<result->GetYaxis()->GetBinCenter(i)<<"\t"<<result->GetBinContent(j,i)<<"\t"<<result->GetBinError(j,i)<<"\t"<<result->GetBinError(j,i)/result->GetBinContent(j,i)<<endl;
 		result->SetBinContent(j,i,0);
 		result->SetBinError(j,i,0);
 	    }
@@ -77,8 +78,8 @@ TH2F* resp_reweight(TH2F* resp_mtx,TH1D* spec,int iter){
     TH2D* aug_spec=truth_augment(resp_mtx,spec);
     resp_aug->Multiply(aug_spec);
     
-    TH2F* resp_return=outlier_trim(resp_aug,true);
-//    TH2F* resp_return=(TH2F*)resp_aug->Clone();
+//    TH2F* resp_return=outlier_trim(resp_aug,true);
+    TH2F* resp_return=(TH2F*)resp_aug->Clone();
 
     resp_return->SetName(Form("%s_iter_%i",resp_mtx->GetName(),iter));
     resp_return->SetTitle(Form("%s_iter_%i",resp_mtx->GetTitle(),iter));
