@@ -7,7 +7,7 @@ std::vector<int> bins={0,10,20,30,50,70}
 ){
 const int ncent=bins.size()-1;
 
-double marker_size=2;
+double marker_size=1;
 double line_width=2;
 out_hist* nominal[2];
 
@@ -44,66 +44,116 @@ gStyle->SetErrorX(0);
 //gStyle->SetOptTitle(0);
 
 TCanvas* c[8];
-for(int isys=0;isys<2;isys++){
-    
-    string sys=isys?"zr":"ru";
+
+c[0]=new TCanvas("c0","",1200,600);
+c[0]->Divide(2,1,0.0);
 
 //Raw
-    c[isys]=new TCanvas(Form("c_%i",isys),"",700,600);
-    c[isys]->SetLogy();
-    c[isys]->SetLeftMargin(0.15);
-    double raw_ymax=nominal[isys]->raw_spec[0]->GetBinContent(4)*2;
-    double raw_ymin=nominal[isys]->raw_spec[ncent-1]->GetBinContent(nbins)/pow(5,ncent-1)/2;
+double raw_ymax[2];
+double raw_ymin[2];
+double rawmax,rawmin;
+for(int isys=0;isys<2;isys++){
+    raw_ymax[isys]=nominal[isys]->raw_spec[0]->GetBinContent(4)*5;
+    raw_ymin[isys]=nominal[isys]->raw_spec[ncent-1]->GetBinContent(nbins)/pow(5,ncent-1)/2;
+}
+ 
+rawmax=raw_ymax[0]>raw_ymax[1]?raw_ymax[0]:raw_ymax[1];  
+rawmin=raw_ymin[0]<raw_ymin[1]?raw_ymin[0]:raw_ymin[1];  
+for(int isys=0;isys<2;isys++){
+    string sys=isys?"zr":"ru";
+
+    c[0]->cd(isys+1);
+    gPad->SetLogy();
+    if(isys==0){gPad->SetRightMargin(0.02); gPad->SetLeftMargin(0.15);}
+    else{gPad->SetLeftMargin(0.02);gPad->SetRightMargin(0.15);}
+//    c[isys]=new TCanvas(Form("c_%i",isys),"",700,600);
+//    c[isys]->SetLogy();
+//    c[isys]->SetLeftMargin(0.15);
 //    double raw_ymin=raw_spec[isys][ncent-1]->GetBinContent(nbins)/2;
-    TLegend* lg=new TLegend(0.6,0.6,0.9,0.9);
+    TLegend* lg=new TLegend(0.55,0.6,0.84,0.98);
     TH1D* raw_copy[ncent];
     for(int i=0;i<ncent;i++){
 	raw_copy[i]=(TH1D*)nominal[isys]->raw_spec[i]->Clone();
     	raw_copy[i]->Scale(1.0/pow(5,i));
-    
-    	raw_copy[i]->GetXaxis()->SetRangeUser(0,30);
-    	raw_copy[i]->GetYaxis()->SetRangeUser(raw_ymin,raw_ymax);
-    	raw_copy[i]->SetTitle(Form("%s raw spectrum",sys.c_str()));
+//    	raw_copy[i]->SetTitle("");
+	const string sysname=isys?"Zr":"Ru";
+    	raw_copy[i]->SetTitle(Form("%s + %s",sysname.c_str(),sysname.c_str()));
+    	raw_copy[i]->GetXaxis()->SetRangeUser(0.1,30);
+    	raw_copy[i]->GetYaxis()->SetRangeUser(rawmin,rawmax);
     	raw_copy[i]->SetXTitle("p_{T} (GeV/c)");
-     	raw_copy[i]->SetYTitle("#frac{1}{2#pi p_{T} } #frac{d^{2} N}{d p_{T} d #eta}");
+     	if(isys==0)raw_copy[i]->SetYTitle("#frac{1}{2#pi p_{T} } #frac{d^{2} N}{d p_{T} d #eta}");
+	else{
+	    raw_copy[i]->GetYaxis()->SetLabelSize(0);
+	    raw_copy[i]->GetYaxis()->SetLabelOffset(100);
+
+	}
     	raw_copy[i]->SetLineWidth(line_width);
 	raw_copy[i]->SetMarkerStyle(markers[i]);
 	raw_copy[i]->SetMarkerSize(marker_size);
     	raw_copy[i]->Draw("same PLC PLM PMC");
-    	lg->AddEntry(raw_copy[i],i?Form("%i%%-%i%% / %i",bins[i],bins[i+1],(int)pow(5,i)):"0%-10%");
+    	if(isys)lg->AddEntry(raw_copy[i],i?Form("%i%%-%i%% / 5^%i",bins[i],bins[i+1],i):"0%-10%");
     }
-    lg->Draw();
+    if(isys){lg->SetBorderSize(0);lg->Draw();}
+}
 
+c[0]->SaveAs("prelim_plots/RawSpec.png");
+
+
+c[1]=new TCanvas("c1","",1200,600);
+c[1]->Divide(2,1,0.0);
+double unfold_ymin[2],unfold_ymax[2];
+for(int isys=0;isys<2;isys++){
+    unfold_ymax[isys]=nominal[isys]->unfold_spec[0]->GetBinContent(4)*5;
+    unfold_ymin[isys]=nominal[isys]->unfold_spec[ncent-1]->GetBinContent(nbins-3)/pow(5,ncent-1)/2;
+}
+ 
+double unfoldmax=unfold_ymax[0]>unfold_ymax[1]?unfold_ymax[0]:unfold_ymax[1];  
+double unfoldmin=unfold_ymin[0]<unfold_ymin[1]?unfold_ymin[0]:unfold_ymin[1];  
+for(int isys=0;isys<2;isys++){
 //Unfolded
-    c[isys+2]=new TCanvas(Form("c_%i",isys+2),"",700,600);
-    c[isys+2]->SetLogy();
-    c[isys+2]->SetLeftMargin(0.15);
+    string sys=isys?"Zr":"Ru";
+    c[1]->cd(isys+1);
+    gPad->SetLogy();
+    if(isys==0){gPad->SetRightMargin(0.02); gPad->SetLeftMargin(0.15);}
+    else{gPad->SetLeftMargin(0.02);gPad->SetRightMargin(0.15);}
+
     double unfold_ymax=nominal[isys]->unfold_spec[0]->GetBinContent(4)*2;
     double unfold_ymin=nominal[isys]->unfold_spec[ncent-1]->GetBinContent(nbins-3)/pow(5,ncent-1)/2;
-    TLegend* lg_unfold=new TLegend(0.6,0.6,0.9,0.9);
+    TLegend* lg_unfold=new TLegend(0.55,0.6,0.84,0.98);
     TH1D* unfold_copy[ncent];
     for(int i=0;i<ncent;i++){
-
+	
     	unfold_copy[i]=(TH1D*)nominal[isys]->unfold_spec[i]->Clone();
     	unfold_copy[i]->Scale(1.0/pow(5,i));
-    	unfold_copy[i]->GetXaxis()->SetRangeUser(0,15);
-    	unfold_copy[i]->GetYaxis()->SetRangeUser(unfold_ymin,unfold_ymax);
-    	unfold_copy[i]->SetTitle(Form("%s unfolded spectrum",sys.c_str()));
+    	unfold_copy[i]->GetXaxis()->SetRangeUser(0,20);
+    	unfold_copy[i]->GetYaxis()->SetRangeUser(unfoldmin,unfoldmax);
+    	unfold_copy[i]->SetTitle(Form("%s+%s",sys.c_str(),sys.c_str()));
     	unfold_copy[i]->SetXTitle("p_{T} (GeV/c)");
-    	unfold_copy[i]->SetYTitle("#frac{1}{2#pi p_{T}} #frac{d^{2} N}{d p_{T} d #eta}");
+    	if(isys==0)unfold_copy[i]->SetYTitle("#frac{1}{2#pi p_{T}} #frac{d^{2} N}{d p_{T} d #eta}");
+	else {
+	    unfold_copy[i]->GetYaxis()->SetLabelSize(0);
+	    unfold_copy[i]->GetYaxis()->SetLabelOffset(100);
+	}
     	unfold_copy[i]->SetLineWidth(line_width);
 	unfold_copy[i]->SetMarkerStyle(markers[i]);
 	unfold_copy[i]->SetMarkerSize(marker_size);
     	unfold_copy[i]->Draw("same p0 PLC PLM PMC");
-    	lg_unfold->AddEntry(unfold_copy[i],i?Form("%i%%-%i%% / %i",bins[i],bins[i+1],(int)pow(5,i)):"0%-10%");
-
+    	lg_unfold->AddEntry(unfold_copy[i],i?Form("%i%%-%i%% / 5^%i",bins[i],bins[i+1],i):"0%-10%");
     }
-    lg_unfold->Draw();
+  if(isys){lg_unfold->SetBorderSize(0);lg_unfold->Draw();}
+}
+
+c[1]->SaveAs("prelim_plots/UnfoldSpec.png");
 
 
 // Raa
-    c[isys+4]=new TCanvas(Form("c_%i",isys+4),"",700,600);
-    c[isys+4]->SetLeftMargin(0.15);
+c[2]=new TCanvas("c2","",1200,600);
+c[2]->Divide(2,1,0);
+for(int isys=0;isys<2;isys++){
+    string sys=isys?"Zr":"Ru";
+    c[2]->cd(isys+1);  
+    if(isys==0){gPad->SetRightMargin(0.02); gPad->SetLeftMargin(0.15);}
+    else{gPad->SetLeftMargin(0.02);gPad->SetRightMargin(0.05);}
     TLegend* lg_raa=new TLegend(0.18,0.13,0.5,0.35);
     TH1D* unfold_raa[ncent];
     TGraphErrors* raa_sys[ncent];
@@ -121,8 +171,14 @@ for(int isys=0;isys<2;isys++){
 
     pp_err->SetTitle(Form("%s+%s R_{AA}",sys.c_str(),sys.c_str()));
     pp_err->SetFillColorAlpha(15,0.5);
-    
-
+    pp_err->SetXTitle("p_{T} (GeV/c)");
+    pp_err->GetXaxis()->SetLabelSize(0.04);
+    pp_err->GetXaxis()->SetTitleSize(0.04);
+    if(isys==0)pp_err->SetYTitle("R_{AA}");
+    else{
+	pp_err->GetYaxis()->SetLabelSize(0);	 
+	pp_err->GetYaxis()->SetLabelOffset(100);	 
+    }
     pp_err->Draw("same e3");  
 
     
@@ -141,6 +197,14 @@ for(int isys=0;isys<2;isys++){
     	unfold_raa[i]->Divide(pp_hist_noerr);
     	unfold_raa[i]->GetXaxis()->SetRangeUser(0.4,10);
     	unfold_raa[i]->GetYaxis()->SetRangeUser(0.1,1.5);
+	if(isys==0){
+	    unfold_raa[i]->SetYTitle("R_{AA}");
+	}
+ 	else{
+	    unfold_raa[i]->GetYaxis()->SetLabelSize(0);
+	    unfold_raa[i]->GetYaxis()->SetLabelOffset(100);
+	}
+	unfold_raa[i]->GetXaxis()->SetTitle("p_{T} (GeV/c)");
 	for(int j=4;j<=nbins-5;j++){
 //	    ycent[j-4]=unfold_spec[isys][i]->GetBinContent(j)/pp_hist->GetBinContent(j-3);
 	   ycent[j-4]=unfold_raa[i]->GetBinContent(j);
@@ -160,11 +224,17 @@ for(int isys=0;isys<2;isys++){
     	lg_raa->AddEntry(unfold_raa[i],Form("%i%%-%i%%",bins[i],bins[i+1]));
     }
 
-    lg_raa->Draw();
-
-// Rcp
-    c[isys+6]=new TCanvas(Form("c_%i",isys+6),"",700,600);
-    c[isys+6]->SetLeftMargin(0.15);
+    if(isys){lg_raa->SetBorderSize(0);lg_raa->Draw();}
+}
+c[2]->SaveAs("prelim_plots/Raa.png");
+//Rcp
+c[3]=new TCanvas("c3","",1200,600);
+c[3]->Divide(2,1,0);
+for(int isys=0;isys<2;isys++){
+    string sys=isys?"Zr":"Ru";
+    c[3]->cd(isys+1);
+    if(isys==0){gPad->SetRightMargin(0.02); gPad->SetLeftMargin(0.15);}
+    else{gPad->SetLeftMargin(0.02);gPad->SetRightMargin(0.1);}
     TLegend* lg_rcp=new TLegend(0.15,0.1,0.4,0.3);
     TH1D* unfold_rcp[ncent-1];
     for(int i=0;i<ncent-1;i++){
@@ -178,7 +248,11 @@ for(int isys=0;isys<2;isys++){
     	unfold_rcp[i]->GetYaxis()->SetRangeUser(0.1,1.5);
 	
     	unfold_rcp[i]->SetXTitle("p_{T} (GeV/c)");
-    	unfold_rcp[i]->SetYTitle("R_{CP}");
+    	if(!isys)unfold_rcp[i]->SetYTitle("R_{CP}");
+	else{
+	    unfold_rcp[i]->GetYaxis()->SetLabelSize(0);
+	    unfold_rcp[i]->GetYaxis()->SetLabelOffset(100);
+	}
     	unfold_rcp[i]->SetLineWidth(line_width);
 	unfold_rcp[i]->SetMarkerSize(marker_size);
  	unfold_rcp[i]->SetMarkerStyle(markers[i]);
@@ -186,13 +260,13 @@ for(int isys=0;isys<2;isys++){
     	lg_rcp->AddEntry(unfold_rcp[i],Form("%i%%-%i%%",bins[i],bins[i+1]));
 
     }
-    lg_rcp->Draw();
+    if(isys==1){lg_rcp->SetBorderSize(0);lg_rcp->Draw();}
 
 
-    c[isys]->SaveAs(Form("prelim_plots/%s_raw_spec.png",sys.c_str()));
-    c[isys+2]->SaveAs(Form("prelim_plots/%s_unfold_spec.png",sys.c_str()));
-    c[isys+4]->SaveAs(Form("prelim_plots/%s_raa.png",sys.c_str()));
-    c[isys+6]->SaveAs(Form("prelim_plots/%s_rcp.png",sys.c_str()));
+//    c[isys]->SaveAs(Form("prelim_plots/%s_raw_spec.png",sys.c_str()));
+//    c[isys+2]->SaveAs(Form("prelim_plots/%s_unfold_spec.png",sys.c_str()));
+//    c[isys+4]->SaveAs(Form("prelim_plots/%s_raa.png",sys.c_str()));
+//    c[isys+6]->SaveAs(Form("prelim_plots/%s_rcp.png",sys.c_str()));
     }
 
 double raa_5GeV[2][ncent],raa_err_5GeV[2][ncent];
@@ -259,11 +333,9 @@ for(int i=0;i<7;i++){
 }
 
 
-
 TGraphErrors* mod_auau=new TGraphErrors(6,auau_npart,auau_mod_5GeV,auau_npart_err,auau_err_5GeV);
 
 cout<<"Au+Au plot created."<<endl;
-
 
 TH1D** dau_hist=hist_dau();
 
@@ -274,7 +346,6 @@ for(int i=0;i<2;i++){
 	if(dau_hist[i]->GetBinCenter(j)<5.1 || dau_hist[i]->GetBinCenter(j)>10)continue;
 
 	raa_buff+=dau_hist[i]->GetBinContent(j)*dau_hist[i]->GetBinWidth(j);
-	
 	err_buff+=pow(dau_hist[i]->GetBinError(j)*dau_hist[i]->GetBinWidth(j),2);
     }
 	
@@ -288,11 +359,7 @@ for(int i=0;i<2;i++){
 
 TGraphErrors* mod_dau=new TGraphErrors(2,dau_npart,dau_mod_5GeV,dau_npart_err,dau_err_5GeV);
 
-
-
 cout<<"d+Au plot created."<<endl;
-
-
 
 TH1D* plot_displace=(TH1D*)nominal[0]->unfold_spec[0]->Clone();
 for(int i=1;i<=plot_displace->GetNbinsX();i++){
@@ -336,7 +403,7 @@ for(int i=0;i<ncent;i++){
     	plot_dummy->GetYaxis()->SetNdivisions(403);
     }
     else if(i==ncent-1){
-	plot_dummy->GetYaxis()->SetRangeUser(0.76,1.24);
+	plot_dummy->GetYaxis()->SetRangeUser(0.78,1.34);
     	plot_dummy->GetYaxis()->SetNdivisions(203);
     }
     else{ 
@@ -388,15 +455,17 @@ for(int i=0;i<ncent;i++){
     if(i==1){
         TLegend* lg_ratio=new TLegend(0.15,0.77,0.5,0.97);
 	lg_ratio->AddEntry(species_ratio[i],"No N_{bin} scaling");
+	lg_ratio->SetBorderSize(0);
 	lg_ratio->Draw("same");
     }
 
     if(i==2){
     	TLegend* lg_ratio=new TLegend(0.15,0.75,0.5,0.95);
 	lg_ratio->AddEntry(nbin_ratio[i],"With N_{bin} scaling");
+	lg_ratio->SetBorderSize(0);
 	lg_ratio->Draw("same");
     }
-    TLatex* biasLabel = new TLatex(0.3,i==(ncent-1)?0.45:0.15, Form("%i%%-%i%%",bins[i],bins[i+1]));
+    TLatex* biasLabel = new TLatex(0.15,i==(ncent-1)?0.45:0.15, Form("%i%%-%i%%",bins[i],bins[i+1]));
     biasLabel->SetTextAlign(12);
     biasLabel->SetTextFont(43);
     biasLabel->SetTextSize(24);
@@ -411,27 +480,6 @@ for(int i=0;i<ncent;i++){
 
    }
 }
-/*
-TCanvas* ru_zr_nbin=new TCanvas("ru_zr_nbin","",700,1000);
-TH1D* ratio_nbin[ncent];
-ru_zr_nbin->Divide(1,ncent,0.15,0);
-for(int i=0;i<ncent;i++){
-    ru_zr_nbin->cd(i+1);
-    TLegend* lg_ratio=new TLegend(0.6,0.7,0.9,0.9);
-    ratio_nbin[i]=(TH1D*)unfold_spec[0][i]->Clone();
-    ratio_nbin[i]->Divide(unfold_spec[1][i]);
-    ratio_nbin[i]->Scale(ncoll[1][i]/ncoll[0][i]);
-//    ratio_nbin[i]->Add(plot_displace,i);
-    ratio_nbin[i]->GetXaxis()->SetRangeUser(0,10);
-    ratio_nbin[i]->GetYaxis()->SetRangeUser(0.79,1.21);
-    ratio_nbin[i]->SetXTitle("p_{T}");
-    ratio_nbin[i]->SetTitle("Ru/Zr with Nbin scaling");
-    ratio_nbin[i]->Draw("same PLC PLM");
-    lg_ratio->AddEntry(species_ratio[i],Form("%i%%_%i%%",bins[i],bins[i+1]));
-    lg_ratio->Draw();
-}
-
-*/
 ru_vs_zr->SaveAs("prelim_plots/ru_vs_zr.png");
 
 
@@ -439,72 +487,96 @@ ru_vs_zr->SaveAs("prelim_plots/ru_vs_zr.png");
 
 
 
-TCanvas* compile_raa=new TCanvas("compile_raa","",600,600);
-//compile_raa->SetLogx();
+TCanvas* compile_raa=new TCanvas("compile_raa","",1000,600);
+compile_raa->SetLogx();
 compile_raa->Draw();
 compile_raa->cd();
-double compile_xmin=0;
+double compile_xmin=1;
 double compile_xmax=375;
-TH1D* compile_dummy=new TH1D("comp_dummy","",200,0.,400);
+TH1D* compile_dummy=new TH1D("comp_dummy","",200,compile_xmin,compile_xmax);
 compile_dummy->GetXaxis()->SetRangeUser(compile_xmin,compile_xmax);
-compile_dummy->GetYaxis()->SetRangeUser(0.11,1.49);
+compile_dummy->GetYaxis()->SetRangeUser(0.01,1.49);
 compile_dummy->SetXTitle("N_{part}");
 compile_dummy->SetTitle("Hadron R_{AA} for p_{T} > 5 GeV");
 compile_dummy->Draw();
 
+TGraphErrors** model=hgpythia_ref();
+model[0]->SetFillStyle(3006);
+model[0]->SetFillColorAlpha(kBlue-9,0.5);
+model[1]->SetFillStyle(3007);
+model[1]->SetFillColorAlpha(kRed-9,0.5);
 
+model[0]->SetMarkerStyle(1);
+model[0]->SetMarkerSize(0);
+model[0]->SetLineWidth(0);
+model[1]->SetMarkerStyle(1);
+model[1]->SetMarkerSize(0);
+model[1]->SetLineWidth(0);
 
-TLine* l=new TLine(compile_xmin,1,compile_xmax,1);
-l->SetLineStyle(8);
-l->Draw("same");
 TGraphErrors* pion_cucu=cucu_pion();
 
-mod_auau->SetLineColor(kOrange+2);
+mod_auau->SetLineColor(42);
+mod_auau->SetMarkerColor(42);
 mod_auau->GetXaxis()->SetTitle("N_{part}");
 mod_auau->GetYaxis()->SetTitle("R_{AA}");
 mod_auau->SetTitle("Inclusive hadron R_{AA} for p_{T} > 5 GeV");
-mod_auau->SetMarkerStyle(22);
+mod_auau->SetMarkerStyle(32);
 integrated_raa[0]->SetLineColor(kBlue);//Ru
 integrated_raa[1]->SetLineColor(kRed);//Zr
 integrated_raa[0]->SetMarkerStyle(29);
-integrated_raa[1]->SetMarkerStyle(30);
-integrated_raa[0]->SetMarkerColor(kBlue+2);
-integrated_raa[1]->SetMarkerColor(kRed+2);
-pion_cucu->SetLineColor(kMagenta);
-pion_cucu->SetMarkerStyle(43);
-pion_cucu->SetMarkerSize(2);
-pion_cucu->SetMarkerColor(kMagenta+2);
+integrated_raa[1]->SetMarkerStyle(47);
+integrated_raa[0]->SetMarkerColor(kBlue);
+integrated_raa[1]->SetMarkerColor(kRed);
+pion_cucu->SetLineColor(32);
+pion_cucu->SetMarkerStyle(46);
+pion_cucu->SetMarkerColor(32);
 
 mod_dau->SetLineColor(kYellow+2);
-mod_dau->SetMarkerColor(kYellow+4);
-mod_dau->SetMarkerStyle(21);
+mod_dau->SetMarkerColor(kYellow+2);
+mod_dau->SetMarkerStyle(25);
 mod_dau->SetMarkerSize(1);
 
 TGraphErrors* phenix_pi=phenix_pion();
-phenix_pi->SetMarkerStyle(23);
-phenix_pi->SetLineColor(kGreen+1);
+phenix_pi->SetMarkerStyle(26);
+phenix_pi->SetLineColor(30);
+phenix_pi->SetMarkerColor(30);
 float width=2;
 mod_auau->SetLineWidth(width);
-integrated_raa[0]->SetLineWidth(width);
-integrated_raa[1]->SetLineWidth(width);
+integrated_raa[0]->SetLineWidth(width+1);
+integrated_raa[1]->SetLineWidth(width+1);
+integrated_raa[0]->SetMarkerSize(2);
+integrated_raa[1]->SetMarkerSize(2);
 phenix_pi->SetLineWidth(width);
 pion_cucu->SetLineWidth(width);
 
-mod_auau->Draw("samep");
-mod_dau->Draw("samep");
-integrated_raa[0]->Draw("samep");
-integrated_raa[1]->Draw("samep");
-phenix_pi->Draw("samep");
-pion_cucu->Draw("samep");
-
-TLegend* lg_compare=new TLegend(0.4,0.6,0.9,0.9);
+TLegend* lg_compare=new TLegend(0.11,0.11,0.4,0.5);
 lg_compare->AddEntry(integrated_raa[0],"STAR Ru+Ru #frac{h^{+}+h^{-}}{2}");
 lg_compare->AddEntry(integrated_raa[1],"STAR Zr+Zr #frac{h^{+}+h^{-}}{2}");
 lg_compare->AddEntry(mod_auau,"STAR Au+Au #frac{h^{+}+h^{-}}{2}");
 lg_compare->AddEntry(mod_dau,"STAR d+Au #frac{h^{+}+h^{-}}{2}");
 lg_compare->AddEntry(pion_cucu,"STAR Cu+Cu #frac{#pi^{+}+#pi^{-}}{2}");
 lg_compare->AddEntry(phenix_pi,"PHENIX U+U 192 GeV #pi^{0}->#gamma#gamma");
-lg_compare->Draw();
-compile_raa->SaveAs("prelim_plots/raa_summary.png");
+lg_compare->AddEntry(model[0],"HG-PYHTIA Ru");
+lg_compare->AddEntry(model[1],"HG-PYHTIA Zr");
 
+lg_compare->SetBorderSize(0);
+lg_compare->Draw();
+
+
+TLine* l=new TLine(compile_xmin,1,compile_xmax,1);
+l->SetLineStyle(8);
+l->Draw("same");
+mod_auau->Draw("samep");
+mod_dau->Draw("samep");
+model[0]->SetMarkerColor(kBlue-9);
+model[1]->SetMarkerColor(kRed-9);
+model[0]->Draw("same e3");
+model[1]->Draw("same e3");
+integrated_raa[0]->Draw("samep");
+integrated_raa[1]->Draw("samep");
+phenix_pi->Draw("samep");
+pion_cucu->Draw("samep");
+
+compile_raa->SaveAs("prelim_plots/raa_summary.png");
+//*/
 }
