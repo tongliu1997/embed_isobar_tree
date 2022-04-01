@@ -1,14 +1,15 @@
 #include "unfold_funcs.h"
 #include "../isobar_hist_process/isobar_hist.h"
 void ibu_fulldata(
-int iszr=0,
+const string system,
 float eta_start=-1,
 float eta_end=1,
 const int niter=2,
 const string embed_key="",
 std::vector<int> cent_in={0,10,20,40,60,80}
 ){
-
+int iszr=0;
+if(system=="zr")iszr=1;
 const char* data_name=(iszr)?"/gpfs/loomis/project/caines/tl543/Isobar_Hist/zr_hadd.root":
 "/gpfs/loomis/project/caines/tl543/Isobar_Hist/ru_hadd.root";
 //"/home/tl543/embed_isobar_tree/testout_noweight.root";
@@ -218,8 +219,8 @@ for(int iter=0;iter<=niter;iter++){
 
 lg->Draw();
 
-string system=(iszr)?"zr":"ru";
-string outname=Form("outhist_%s%s_%i_%i.root",system.c_str(),embed_key.c_str(),etabin_start,etabin_end);
+//string system=(iszr)?"zr":"ru";
+string outname=Form("outhist_%s%s_%i_%i_%ibin.root",system.c_str(),embed_key.c_str(),etabin_start,etabin_end,nstack);
 TFile* output=new TFile(outname.c_str(),"recreate");
 for(int i=0;i<nstack;i++){
     unfolded_rebin[niter][i]->SetName(Form("%s%s_unfolded_spec_%i_%i",system.c_str(),embed_key.c_str(),centrality[i+1],centrality[i]));

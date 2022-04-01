@@ -150,8 +150,10 @@ void random_trk(events& dat, string _options) {
 	    if(!(dat.track_pass_cuts[mc_trk_id] && (dat.track_nHitsFit[mc_trk_id] > 0.52*dat.track_nHitsPoss[mc_trk_id] )))continue;//
 //	    TH1F* gen_mc_pt[lumi_bins][ea_bins][vz_bins];
 	    float reco_pt=dat.track_pt[mc_trk_id];
-	    mc_reco_pt[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_pt,reco_pt);
+	    double deltapt=reco_pt/mc_pt-1;
+	    reco_pt=mc_pt+1.2*deltapt;
 	    double deviation=mc_pt/reco_pt-1;
+	    mc_reco_pt[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_pt,reco_pt);
 		//1/pt is the true Gaussian distribution
 	    mc_dev_pt[ibin_eta][ibin_ea][ibin_vz]->Fill(mc_pt,deviation);
 	

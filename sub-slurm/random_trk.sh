@@ -23,4 +23,4 @@ dir="./out-data/${which_loop}"
 inp_list="./lists/list_${species}_${list_id}.list"
 name="${which_loop}"
 echo ${species} ${list_id}
-./bin/main ${n_events} ${inp_list} ${name} ${dir}/${name}_${species}_${list_id}
+./bin/main ${n_events} ${inp_list} ${name} ${dir}/${name}_${species}_${list_id}_smear

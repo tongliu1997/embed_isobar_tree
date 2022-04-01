@@ -3,13 +3,14 @@
 void highpt_mix(
 const string key_str="proton",
 const string input_key="out-data/hadd_random_trk",
+const string tag="",
 const string obs="pt"
 ){
 
 
 
-const string lowpt_filename(Form("%s_%s.root",input_key.c_str(),key_str.c_str()));
-const string highpt_filename(Form("%s_%s_highpt.root",input_key.c_str(),key_str.c_str()));
+const string lowpt_filename(Form("%s_%s%s.root",input_key.c_str(),key_str.c_str(),tag.c_str()));
+const string highpt_filename(Form("%s_%s_highpt%s.root",input_key.c_str(),key_str.c_str(),tag.c_str()));
 cout<<lowpt_filename<<"\t"<<highpt_filename<<endl;
 
 
@@ -49,7 +50,7 @@ cout<<scale_factor<<endl;
 mixed.add(lowpt);
 mixed.add(highpt,scale_factor);
 
-mixed.write(Form("%s_%s_pt_mixed.root",input_key.c_str(),key_str.c_str()));
+mixed.write(Form("%s_%s_pt_mixed%s.root",input_key.c_str(),key_str.c_str(),tag.c_str()));
 
 
 }
