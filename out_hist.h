@@ -112,7 +112,7 @@ void out_hist::add_error(out_hist &variation){
 
 	    double vari_error=variation.unfold_spec[i]->GetBinContent(ibin);
 	    vari_error-=unfold_spec[i]->GetBinContent(ibin);
-//	    cout<<i<<"\t"<<ibin<<"\t"<<vari_error<<endl;
+//	    cout<<i<<"\t"<<unfold_spec[i]->GetBinCenter(ibin)<<"\t"<<vari_error/unfold_spec[i]->GetBinContent(ibin)<<endl;
 	    vari_error=vari_error*vari_error;
 	    double nomi_error=unfold_spec[i]->GetBinError(ibin);
 	    vari_error+=nomi_error*nomi_error;

@@ -476,8 +476,8 @@ for(int p=0;p<3;p++){
 }
 TLatex* vs_label[3];
 vs_label[0]=new TLatex(0.15,0.75,"per event yield");
-vs_label[1]=new TLatex(0.15,0.85,"#color[2]{ #LT N_{coll} #GT scaling}");
-vs_label[2]=new TLatex(0.15,0.85,"#color[4]{ #LT N_{part} #GT scaling}");
+vs_label[1]=new TLatex(0.15,0.85,"#color[2]{ #LT N_{coll} #GT scaled}");
+vs_label[2]=new TLatex(0.15,0.85,"#color[4]{ #LT N_{part} #GT scaled}");
 for(int p=0;p<3;p++){
     vs_label[p]->SetTextAlign(12);
     vs_label[p]->SetTextFont(43);
@@ -619,28 +619,36 @@ double compile_xmin=6;
 double compile_xmax=375;
 TH1D* compile_dummy=new TH1D("comp_dummy","",200,compile_xmin,compile_xmax);
 compile_dummy->GetXaxis()->SetRangeUser(compile_xmin,compile_xmax);
-compile_dummy->GetYaxis()->SetRangeUser(0.01,1.99);
+compile_dummy->GetYaxis()->SetRangeUser(0,2);
 compile_dummy->SetXTitle("#LT N_{part} #GT");
+compile_dummy->GetXaxis()->SetTitleSize(0.06);
+compile_dummy->GetXaxis()->SetLabelSize(0.04);
+compile_dummy->GetXaxis()->SetTitleOffset(0.6);
 //compile_dummy->SetTitle("Hadron R_{AA} for p_{T} > 5 GeV");
 compile_dummy->SetYTitle("R_{AA}");
+compile_dummy->GetYaxis()->SetLabelSize(0.04);
+compile_dummy->GetYaxis()->SetTitleSize(0.06);
+compile_dummy->GetYaxis()->SetTitleOffset(0.65);
 compile_dummy->DrawClone();
 delete compile_dummy;
 prelim_tag.SetTextAlign(23);
 prelim_tag.SetTextSize(0.04);
 prelim_tag.SetNDC();
 prelim_tag.DrawLatex(0.45,0.24,"STAR #bf{#it{Preliminary}}");
-prelim_tag.DrawLatex(0.45,0.20,"Isobar #sqrt{s_{NN}}=200 GeV");
-prelim_tag.DrawLatex(0.45,0.15,"(h^{+}+h^{-})/2  p_{T} > 5 GeV");
+prelim_tag.DrawLatex(0.45,0.20,"#bf{Isobar #sqrt{s_{NN}}=200 GeV}");
+prelim_tag.DrawLatex(0.45,0.15,"#bf{(h^{+}+h^{-})/2  p_{T} > 5.1 GeV/#it{c}}");
 pp_err_buff=sqrt(pp_err_buff*pp_err_buff+3.5*3.5/900);
 TBox* pp_errbox=new TBox(compile_xmax-20,1-pp_err_buff,compile_xmax,1+pp_err_buff);
 pp_errbox->SetFillColor(15);
+pp_errbox->SetLineColor(15);
 pp_errbox->Draw("same");
 
 TGraphErrors** model=hgpythia_ref();
-model[0]->SetFillStyle(3006);
-model[0]->SetFillColor(kBlue+2);
-model[1]->SetFillStyle(3007);
-model[1]->SetFillColor(kRed+2);
+//TGraphErrors** model=hgpythia_nhard();
+model[0]->SetFillStyle(3002);
+model[0]->SetFillColorAlpha(kBlue,0.5);
+model[1]->SetFillStyle(3001);
+model[1]->SetFillColorAlpha(kRed,0.5);
 
 model[0]->SetMarkerStyle(1);
 model[0]->SetMarkerSize(0);
@@ -688,14 +696,44 @@ mod_dau->SetMarkerColor(kOrange+4);
 mod_dau->SetLineWidth(width);
 mod_dau->SetMarkerStyle(25);
 mod_dau->SetMarkerSize(1.5);
-/*
-TGraphErrors* phenix_uu_pi=phenix_uu_pion();
-phenix_uu_pi->SetMarkerStyle(26);
-phenix_uu_pi->SetLineColor(kGreen+3);
-phenix_uu_pi->SetMarkerColor(kGreen+3);
-phenix_uu_pi->SetMarkerSize(2);
-phenix_uu_pi->SetLineWidth(width);
-*/
+
+TGraphErrors** phenix_uu_pi=phenix_uu_pion();
+phenix_uu_pi[0]->SetMarkerStyle(26);
+phenix_uu_pi[0]->SetLineColor(kGreen+3);
+phenix_uu_pi[0]->SetMarkerColor(kGreen+3);
+phenix_uu_pi[0]->SetMarkerSize(2);
+phenix_uu_pi[0]->SetLineWidth(width);
+
+phenix_uu_pi[1]->SetMarkerSize(0);
+phenix_uu_pi[1]->SetLineColor(kGreen+3);
+phenix_uu_pi[1]->SetFillColorAlpha(0,0);
+phenix_uu_pi[1]->SetLineWidth(1);
+
+TGraphErrors** phenix_cuau_pi=phenix_cuau_pion();
+phenix_cuau_pi[0]->SetMarkerStyle(28);
+phenix_cuau_pi[0]->SetLineColor(kYellow+3);
+phenix_cuau_pi[0]->SetMarkerColor(kYellow+3);
+phenix_cuau_pi[0]->SetMarkerSize(2);
+phenix_cuau_pi[0]->SetLineWidth(width);
+
+phenix_cuau_pi[1]->SetMarkerSize(0);
+phenix_cuau_pi[1]->SetLineColor(kYellow+3);
+phenix_cuau_pi[1]->SetFillColorAlpha(0,0);
+phenix_cuau_pi[1]->SetLineWidth(1);
+
+TGraphErrors** phenix_auau_pi=phenix_auau_pion();
+phenix_auau_pi[0]->SetMarkerStyle(38);
+phenix_auau_pi[0]->SetLineColor(kViolet+3);
+phenix_auau_pi[0]->SetMarkerColor(kViolet+3);
+phenix_auau_pi[0]->SetMarkerSize(2);
+phenix_auau_pi[0]->SetLineWidth(width);
+
+phenix_auau_pi[1]->SetMarkerSize(0);
+phenix_auau_pi[1]->SetLineColor(kViolet+3);
+phenix_auau_pi[1]->SetFillColorAlpha(0,0);
+phenix_auau_pi[1]->SetLineWidth(1);
+
+
 mod_auau->SetLineWidth(width);
 integrated_raa[0]->SetLineWidth(width+1);
 integrated_raa[1]->SetLineWidth(width+1);
@@ -703,10 +741,10 @@ integrated_raa[0]->SetMarkerSize(2);
 integrated_raa[1]->SetMarkerSize(2);
 pion_cucu->SetLineWidth(width);
 
-TLegend* lg_compile=new TLegend(0.12,0.72,0.3,0.89);
+TLegend* lg_compile=new TLegend(0.12,0.7,0.35,0.85);
 lg_compile->AddEntry(integrated_raa[0],"Ru+Ru");
 lg_compile->AddEntry(integrated_raa[1],"Zr+Zr");
-lg_compile->AddEntry(pp_errbox,"pp uncertainty");
+lg_compile->AddEntry(pp_errbox,"pp uncertainty","f");
 lg_compile->SetBorderSize(0);
 lg_compile->Draw();
 sys_err_raa[0]->Draw("s=0.5 same");
@@ -719,17 +757,15 @@ TLine* l=new TLine(compile_xmin,1,compile_xmax,1);
 l->SetLineStyle(8);
 l->Draw("same");
 
+prelim_tag.DrawLatex(0.3,0.88,"#bf{Data}");
+
 compile_raa->SaveAs(Form("prelim_plots/raa_summary_0_%ibin.pdf",ncent));
 
 
-TLegend* lg_compare=new TLegend(0.65,0.75,0.86,0.89);
+TLegend* lg_compare=new TLegend(0.35,0.7,0.65,0.85);
 lg_compare->AddEntry(mod_auau,"Au+Au");
 lg_compare->AddEntry(mod_dau,"d+Au");
 lg_compare->AddEntry(pion_cucu,"Cu+Cu #frac{#pi^{+}+#pi^{-}}{2}");
-//lg_compare->AddEntry(mod_auau,"Au+Au 5.1-10 GeV/c");
-//lg_compare->AddEntry(mod_dau,"d+Au 5.1-10 GeV/c");
-//lg_compare->AddEntry(pion_cucu,"Cu+Cu #frac{#pi^{+}+#pi^{-}}{2} 5-8 GeV/c");
-//lg_compare->AddEntry(phenix_uu_pi,"PHENIX U+U 193 GeV #pi^{0}->#gamma#gamma p_{T}>5 GeV/c");
 
 lg_compare->SetBorderSize(0);
 lg_compare->Draw();
@@ -737,8 +773,18 @@ lg_compare->Draw();
 
 mod_auau->Draw("samep");
 mod_dau->Draw("samep");
-//phenix_uu_pi->Draw("samep");
 pion_cucu->Draw("samep");
+
+
+//phenix_uu_pi[1]->Draw("s=0.5 same");
+//phenix_uu_pi[0]->Draw("samep");
+
+//phenix_auau_pi[1]->Draw("s=0.5 same");
+//phenix_auau_pi[0]->Draw("samep");
+
+//phenix_cuau_pi[1]->Draw("s=0.5 same");
+//phenix_cuau_pi[0]->Draw("samep");
+
 
 sys_err_raa[0]->Draw("s=0.5 same");
 sys_err_raa[1]->Draw("s=0.5 same");
@@ -751,15 +797,16 @@ compile_raa->SaveAs(Form("prelim_plots/raa_summary_1_%ibin.pdf",ncent));
 
 
 
-
-
-TLegend* lg_model=new TLegend(0.3,0.8,0.65,0.89);
-lg_model->AddEntry(model[0],"HG-PYTHIA Ru+Ru");
-lg_model->AddEntry(model[1],"HG-PYTHIA Zr+Zr");
+TLegend* lg_model=new TLegend(0.65,0.72,0.89,0.85);
+lg_model->AddEntry(model[0],"Ru+Ru");
+lg_model->AddEntry(model[1],"Zr+Zr");
 lg_model->SetBorderSize(0);
 lg_model->Draw();
-model[0]->SetMarkerColor(kBlue-9);
-model[1]->SetMarkerColor(kRed-9);
+lg_compare->Draw();
+prelim_tag.DrawLatex(0.75,0.88,"#bf{HG-PYTHIA}");
+
+
+
 model[0]->Draw("same e3");
 model[1]->Draw("same e3");
 
@@ -768,5 +815,28 @@ sys_err_raa[1]->Draw("s=0.5 same");
 integrated_raa[0]->Draw("samep");
 integrated_raa[1]->Draw("samep");
 compile_raa->SaveAs(Form("prelim_plots/raa_summary_%ibin.pdf",ncent));
+compile_raa->SaveAs(Form("prelim_plots/raa_summary_%ibin.C",ncent));
+
+
+prelim_tag.DrawLatex(0.82,0.55,"#bf{PHENIX #pi^{0}}");
+
+phenix_uu_pi[1]->Draw("s=0.5 same");
+phenix_uu_pi[0]->Draw("samep");
+
+phenix_auau_pi[1]->Draw("s=0.5 same");
+phenix_auau_pi[0]->Draw("samep");
+
+phenix_cuau_pi[1]->Draw("s=0.5 same");
+phenix_cuau_pi[0]->Draw("samep");
+
+TLegend* lg_phenix=new TLegend(0.75,0.28,0.88,0.48);
+lg_phenix->AddEntry(phenix_uu_pi[0],"U+U");
+lg_phenix->AddEntry(phenix_auau_pi[0],"Au+Au");
+lg_phenix->AddEntry(phenix_cuau_pi[0],"Cu+Au");
+lg_phenix->SetBorderSize(0);
+lg_phenix->Draw();
+
+compile_raa->SaveAs(Form("prelim_plots/raa_summary_phenix_%ibin.pdf",ncent));
+
 //*/
 }

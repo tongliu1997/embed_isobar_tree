@@ -4,15 +4,24 @@ ncent=16
 # ncent=5
 pion_key=\"_pion\"
 embed_key=\"\"
-# for sys in ru zr 
-# do
+
+smear_key=\"_smear\"
+ for sys in ru zr 
+ do
 #    root -l -b -q ibu_fulldata.C\(\"${sys}\",-0.5,0.5,2,${embed_key},${cent_in}\)
 
 #    root -l -b -q ibu_fulldata.C\(\"${sys}\",-0.5,0.5,2,${pion_key},${cent_in}\)
+#    root -l -b -q ibu_fulldata.C\(\"${sys}\",-0.5,0.5,2,${smear_key},${cent_in}\)
 
-#    root -l -b -q outhist_systematics.C\(\"${sys}\",\"outhist_${sys}_2_3_${ncent}bin.root\",\"outhist_${sys}_pion_2_3_${ncent}bin.root\",\"systematics_${sys}_2_3_${ncent}bin.root\",${cent_in}\)
 
-# done
+    nominal_name=\"outhist_${sys}_2_3_${ncent}bin.root\"
+    pion_name=\"outhist_${sys}_pion_2_3_${ncent}bin.root\"
+    smear_name=\"outhist_${sys}_smear_2_3_${ncent}bin.root\"
+    sys_name=\"systematics_${sys}_2_3_${ncent}bin.root\"
 
-root -l outhist_plot.C\(\"outhist_ru_2_3_${ncent}bin.root\",\"outhist_zr_2_3_${ncent}bin.root\",\"systematics_ru_2_3_${ncent}bin.root\",\"systematics_zr_2_3_${ncent}bin.root\",${cent_in}\)
+#    root -l -b -q outhist_systematics.C\(\"${sys}\",${nominal_name},${pion_name},${smear_name},${sys_name},${cent_in}\)
+
+done
+
+root -l -b -q outhist_plot.C\(\"outhist_ru_2_3_${ncent}bin.root\",\"outhist_zr_2_3_${ncent}bin.root\",\"systematics_ru_2_3_${ncent}bin.root\",\"systematics_zr_2_3_${ncent}bin.root\",${cent_in}\)
 

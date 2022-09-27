@@ -112,8 +112,9 @@ void blending(
 	const char* weightname="species_weight.txt",
 	const string input_key="out-data/hadd_random_trk",
 	const string suffix="pt_mixed",
-	std::vector<int> species_list={2,3},
-	const string outname="isobar_trk_eff_ptmix_blend_kaon.root"
+	const string tag="_smear",
+	std::vector<int> species_list={0,1,2,3,4,5},
+	const string outname="isobar_trk_eff_ptmix_blend_smear.root"
 //p = 0, pbar=1, k+=2, k-=3, pi+=4, pi-=5 	
 ){
 
@@ -145,8 +146,8 @@ for(int ifile=0;ifile<nspecies;ifile++){
     if(std::find(species_list.begin(),species_list.end(),ifile)==species_list.end()) continue;    
     cout<<"Starting "<<keyword_str[ifile].c_str()<<endl;
     const char* keyword=keyword_str[ifile].c_str();
-    string filename(Form("%s_%s.root",input_key.c_str(),keyword));
-    if(suffix!="")filename=Form("%s_%s_%s.root",input_key.c_str(),keyword,suffix.c_str());
+    string filename(Form("%s_%s%s.root",input_key.c_str(),keyword,tag.c_str()));
+    if(suffix!="")filename=Form("%s_%s_%s%s.root",input_key.c_str(),keyword,suffix.c_str(),tag.c_str());
     cout<<filename<<endl; 
 //    species[i]=new species_plots(filename,Form("%s_%s",keyword,suffix.c_str()));
     species_plots mspecies(filename,Form("%s_%s",keyword,suffix.c_str()));
