@@ -1,6 +1,5 @@
 #include "species_plots.h"
 
-
 double Interpolate(int size,double* coord,double* wt,double x){
     double max_coord=coord[size-1];
     double min_coord=coord[0];
@@ -14,7 +13,6 @@ double Interpolate(int size,double* coord,double* wt,double x){
     }
     return -1;
 }
-
 
 TH1F** read_weight(const char* weightname,std::vector<int> vec){
 //read off weighting between species

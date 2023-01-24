@@ -163,10 +163,12 @@ for(int i=1;i<=plot_displace->GetNbinsX();i++){
 }
 
 
-TCanvas* compile_raa=new TCanvas("compile_raa","",1000,800);
+TCanvas* compile_raa=new TCanvas("compile_raa","",1000,760);
 compile_raa->SetLogx();
 compile_raa->Draw();
 compile_raa->cd();
+compile_raa->SetTopMargin(0.02);
+compile_raa->SetRightMargin(0.02);
 double compile_xmin=6;
 double compile_xmax=375;
 TH1D* compile_dummy=new TH1D("comp_dummy","",200,compile_xmin,compile_xmax);
@@ -187,7 +189,7 @@ prelim_tag.SetTextAlign(23);
 prelim_tag.SetTextSize(0.04);
 prelim_tag.SetNDC();
 prelim_tag.DrawLatex(0.45,0.24,"STAR #bf{#it{Preliminary}}");
-prelim_tag.DrawLatex(0.45,0.20,"#bf{Isobar #sqrt{s_{NN}}=200 GeV}");
+prelim_tag.DrawLatex(0.45,0.20,"#bf{#sqrt{s_{NN}}=200 GeV}");
 prelim_tag.DrawLatex(0.45,0.15,"#bf{(h^{+}+h^{-})/2  p_{T} > 5.1 GeV/#it{c}}");
 pp_err_buff=sqrt(pp_err_buff*pp_err_buff+3.5*3.5/900);
 TBox* pp_errbox=new TBox(compile_xmax-20,1-pp_err_buff,compile_xmax,1+pp_err_buff);
@@ -242,7 +244,7 @@ integrated_raa[0]->SetMarkerSize(2);
 integrated_raa[1]->SetMarkerSize(2);
 pion_cucu->SetLineWidth(width);
 
-TLegend* lg_compile=new TLegend(0.12,0.7,0.35,0.85);
+TLegend* lg_compile=new TLegend(0.12,0.74,0.39,0.91);
 lg_compile->AddEntry(integrated_raa[0],"Ru+Ru");
 lg_compile->AddEntry(integrated_raa[1],"Zr+Zr");
 lg_compile->AddEntry(pp_errbox,"pp uncertainty","f");
@@ -258,12 +260,12 @@ TLine* l=new TLine(compile_xmin,1,compile_xmax,1);
 l->SetLineStyle(8);
 l->Draw("same");
 
-prelim_tag.DrawLatex(0.3,0.88,"#bf{Data}");
+prelim_tag.DrawLatex(0.32,0.95,"#bf{Data}");
 
-//compile_raa->SaveAs(Form("prelim_plots/raa_summary_0_%ibin.pdf",ncent));
+compile_raa->SaveAs(Form("prelim_plots/raa_summary_0_%ibin.pdf",ncent));
 
 
-TLegend* lg_compare=new TLegend(0.35,0.7,0.65,0.85);
+TLegend* lg_compare=new TLegend(0.39,0.74,0.66,0.91);
 lg_compare->AddEntry(mod_auau,"Au+Au");
 lg_compare->AddEntry(mod_dau,"d+Au");
 lg_compare->AddEntry(pion_cucu,"Cu+Cu #frac{#pi^{+}+#pi^{-}}{2}");
@@ -292,7 +294,7 @@ sys_err_raa[1]->Draw("s=0.5 same");
 integrated_raa[0]->Draw("samep");
 integrated_raa[1]->Draw("samep");
 
-//compile_raa->SaveAs(Form("prelim_plots/raa_summary_1_%ibin.pdf",ncent));
+compile_raa->SaveAs(Form("prelim_plots/raa_summary_1_%ibin.pdf",ncent));
 
 
 
@@ -323,33 +325,14 @@ model_nhard[1]->SetMarkerSize(1.5);
 model_nhard[0]->SetMarkerColor(kBlue-2);
 model_nhard[1]->SetMarkerColor(kRed-2);
 
-
-model[0]->Draw("same e3");
-model[1]->Draw("same e3");
-
-TLegend* lg_mych5=new TLegend(0.65,0.72,0.89,0.85);
-lg_mych5->AddEntry(model[0],"Ru+Ru Y^{ch}_{p_{T} > 5 GeV}");
-lg_mych5->AddEntry(model[1],"Zr+Zr Y^{ch}_{p_{T} > 5 GeV}");
-lg_mych5->SetBorderSize(0);
-lg_mych5->Draw();
-prelim_tag.DrawLatex(0.75,0.88,"#bf{HG-PYTHIA}");
-
-sys_err_raa[0]->Draw("s=0.5 same");
-sys_err_raa[1]->Draw("s=0.5 same");
-integrated_raa[0]->Draw("samep");
-integrated_raa[1]->Draw("samep");
-
-compile_raa->SaveAs(Form("prelim_plots/raa_summary_%ibin.pdf",ncent));
-
 bool get_nhard=true;
 if(get_nhard){
+  prelim_tag.DrawLatex(0.79,0.95,"#bf{HG-PYTHIA}");
   model_nhard[0]->Draw("samepl");
   model_nhard[1]->Draw("samepl");
-  TLegend* lg_model=new TLegend(0.65,0.59,0.89,0.85);
-  lg_model->AddEntry(model[0],"Ru+Ru Y^{ch}_{p_{T} > 5 GeV}");
-  lg_model->AddEntry(model[1],"Zr+Zr Y^{ch}_{p_{T} > 5 GeV}");
-  lg_model->AddEntry(model_nhard[0],"Ru+Ru N_{hard}");
-  lg_model->AddEntry(model_nhard[1],"Zr+Zr N_{hard}");
+  TLegend* lg_model=new TLegend(0.7,0.78,0.97,0.91);
+  lg_model->AddEntry(model_nhard[0],"Ru+Ru N_{hard}     ");
+  lg_model->AddEntry(model_nhard[1],"Zr+Zr N_{hard}     ");
   lg_model->SetBorderSize(0);
   lg_model->Draw();
 
@@ -359,6 +342,33 @@ if(get_nhard){
   integrated_raa[1]->Draw("samep");
   compile_raa->SaveAs(Form("prelim_plots/raa_summary_nhard_%ibin.pdf",ncent));
 }
+
+
+bool get_pythia=true;
+if(get_pythia){
+  model[0]->Draw("same e3");
+  model[1]->Draw("same e3");
+
+  TLegend* lg_mych5=new TLegend(0.7,0.65,0.97,0.91);
+  lg_mych5->AddEntry(model_nhard[0],"Ru+Ru N_{hard}     ");
+  lg_mych5->AddEntry(model_nhard[1],"Zr+Zr N_{hard}     ");
+  lg_mych5->AddEntry(model[0],"Ru+Ru Y^{ch}");
+  lg_mych5->AddEntry(model[1],"Zr+Zr Y^{ch}");
+  lg_mych5->SetBorderSize(0);
+  lg_mych5->Draw();
+  prelim_tag.DrawLatex(0.79,0.95,"#bf{HG-PYTHIA}");
+
+  sys_err_raa[0]->Draw("s=0.5 same");
+  sys_err_raa[1]->Draw("s=0.5 same");
+  integrated_raa[0]->Draw("samep");
+  integrated_raa[1]->Draw("samep");
+
+  compile_raa->SaveAs(Form("prelim_plots/raa_summary_pythia_%ibin.pdf",ncent));
+}
+
+
+
+
 bool get_phenix=true;
 if(get_phenix){
   TGraphErrors** phenix_uu_pi=phenix_uu_pion();
@@ -370,7 +380,7 @@ if(get_phenix){
   TGraphErrors** phenix_auau_pi=phenix_auau_pion();
   phenix_set_style(phenix_auau_pi,38,kViolet+3,width);
 
-  prelim_tag.DrawLatex(0.82,0.48,"#bf{PHENIX #pi^{0}}");
+  prelim_tag.DrawLatex(0.88,0.52,"#bf{PHENIX #pi^{0}}");
 
   phenix_uu_pi[1]->Draw("s=0.5 same");
   phenix_uu_pi[0]->Draw("samep");
@@ -381,15 +391,16 @@ if(get_phenix){
   phenix_cuau_pi[1]->Draw("s=0.5 same");
   phenix_cuau_pi[0]->Draw("samep");
 
-  TLegend* lg_phenix=new TLegend(0.75,0.28,0.88,0.44);
+  TLegend* lg_phenix=new TLegend(0.8,0.32,0.95,0.48);
   lg_phenix->AddEntry(phenix_uu_pi[0],"U+U");
   lg_phenix->AddEntry(phenix_auau_pi[0],"Au+Au");
   lg_phenix->AddEntry(phenix_cuau_pi[0],"Cu+Au");
   lg_phenix->SetBorderSize(0);
   lg_phenix->Draw();
   compile_raa->Draw();
+
+  compile_raa->SaveAs(Form("prelim_plots/raa_summary_phenix_%ibin.pdf",ncent));
 }
-compile_raa->SaveAs(Form("prelim_plots/raa_summary_phenix_%ibin.pdf",ncent));
 
 //*/
 }

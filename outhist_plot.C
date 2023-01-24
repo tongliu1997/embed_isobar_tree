@@ -38,7 +38,7 @@ for(int isys=0;isys<2;isys++){
 	
     }
 }
-int colors[20]={1,879,600,418,632,3,9,20,30,40,810,397,434,844,618,624,797,38,46,43};
+int colors[20]={418,879,600,1,632,3,9,20,30,40,810,397,434,844,618,624,797,38,46,43};
 int markers[20]={20,21,22,47,29,33,34,37,39,43,45,46,23,48,49,33,34,2,3,5};
 TH1D* pp_hist=hist_pp(true);
 pp_hist->SetName("pp_hist_witherr");
@@ -497,7 +497,7 @@ prelim_tag.DrawLatex(0.5,0.25,"Isobar #sqrt{s_{NN}}=200 GeV");
 prelim_tag.DrawLatex(0.5,0.12,"(h^{+}+h^{-})/2");
 
 ru_vs_zr->SaveAs(Form("prelim_plots/ru_vs_zr_%i.pdf",ncent));
-
+/*
 double raa_5GeV[2][ncent],raa_err_5GeV[2][ncent],raa_sys_5GeV[2][ncent],npart_width[2][ncent];
 double raa_xbins[4]={0,5.1,10,30};
 double pp_buff=0,pp_err_buff=0;
@@ -608,9 +608,6 @@ for(int i=1;i<=plot_displace->GetNbinsX();i++){
 }
 
 
-
-
-
 TCanvas* compile_raa=new TCanvas("compile_raa","",1000,800);
 compile_raa->SetLogx();
 compile_raa->Draw();
@@ -698,41 +695,13 @@ mod_dau->SetMarkerStyle(25);
 mod_dau->SetMarkerSize(1.5);
 
 TGraphErrors** phenix_uu_pi=phenix_uu_pion();
-phenix_uu_pi[0]->SetMarkerStyle(26);
-phenix_uu_pi[0]->SetLineColor(kGreen+3);
-phenix_uu_pi[0]->SetMarkerColor(kGreen+3);
-phenix_uu_pi[0]->SetMarkerSize(2);
-phenix_uu_pi[0]->SetLineWidth(width);
-
-phenix_uu_pi[1]->SetMarkerSize(0);
-phenix_uu_pi[1]->SetLineColor(kGreen+3);
-phenix_uu_pi[1]->SetFillColorAlpha(0,0);
-phenix_uu_pi[1]->SetLineWidth(1);
+phenix_set_style(phenix_uu_pi,26,kGreen+3,width);
 
 TGraphErrors** phenix_cuau_pi=phenix_cuau_pion();
-phenix_cuau_pi[0]->SetMarkerStyle(28);
-phenix_cuau_pi[0]->SetLineColor(kYellow+3);
-phenix_cuau_pi[0]->SetMarkerColor(kYellow+3);
-phenix_cuau_pi[0]->SetMarkerSize(2);
-phenix_cuau_pi[0]->SetLineWidth(width);
-
-phenix_cuau_pi[1]->SetMarkerSize(0);
-phenix_cuau_pi[1]->SetLineColor(kYellow+3);
-phenix_cuau_pi[1]->SetFillColorAlpha(0,0);
-phenix_cuau_pi[1]->SetLineWidth(1);
+phenix_set_style(phenix_cuau_pi,28,kYellow+3,width);
 
 TGraphErrors** phenix_auau_pi=phenix_auau_pion();
-phenix_auau_pi[0]->SetMarkerStyle(38);
-phenix_auau_pi[0]->SetLineColor(kViolet+3);
-phenix_auau_pi[0]->SetMarkerColor(kViolet+3);
-phenix_auau_pi[0]->SetMarkerSize(2);
-phenix_auau_pi[0]->SetLineWidth(width);
-
-phenix_auau_pi[1]->SetMarkerSize(0);
-phenix_auau_pi[1]->SetLineColor(kViolet+3);
-phenix_auau_pi[1]->SetFillColorAlpha(0,0);
-phenix_auau_pi[1]->SetLineWidth(1);
-
+phenix_set_style(phenix_auau_pi,38,kViolet+3,width);
 
 mod_auau->SetLineWidth(width);
 integrated_raa[0]->SetLineWidth(width+1);
@@ -770,7 +739,6 @@ lg_compare->AddEntry(pion_cucu,"Cu+Cu #frac{#pi^{+}+#pi^{-}}{2}");
 lg_compare->SetBorderSize(0);
 lg_compare->Draw();
 
-
 mod_auau->Draw("samep");
 mod_dau->Draw("samep");
 pion_cucu->Draw("samep");
@@ -792,9 +760,6 @@ integrated_raa[0]->Draw("samep");
 integrated_raa[1]->Draw("samep");
 
 compile_raa->SaveAs(Form("prelim_plots/raa_summary_1_%ibin.pdf",ncent));
-
-
-
 
 
 TLegend* lg_model=new TLegend(0.65,0.72,0.89,0.85);
