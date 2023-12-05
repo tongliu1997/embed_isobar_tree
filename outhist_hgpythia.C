@@ -14,6 +14,7 @@ double marker_size=1.8;
 double line_width=2;
 out_hist* nominal[2];
 
+string buf_char;
 
 nominal[0]=new out_hist(ru_name,bins,"ru","");
 nominal[1]=new out_hist(zr_name,bins,"zr","");
@@ -90,11 +91,9 @@ for(int isys=0;isys<2;isys++){
 	isobar_err_buff/=pow(ncoll[isys][i],2);
 	raa_5GeV[isys][i]=isobar_buff/pp_buff;
 	raa_sys_5GeV[isys][i]=isobar_sys_buff;
-	cout<<(isys?"zr\t":"ru\t")<<ncoll[isys][i]<<"\t"<<npart[isys][i]<<"\t"<<raa_5GeV[isys][i]<<"\t"<<raa_sys_5GeV[isys][i]/raa_5GeV[isys][i]<<"\t"<<nominal[isys]->nbin_err(i)/nominal[isys]->nbin(i)<<endl;
-
-
 //	raa_err_5GeV[isys][i]=sqrt(isobar_err_buff/(isobar_buff*isobar_buff)+pp_err_buff*pp_err_buff);
 	raa_err_5GeV[isys][i]=sqrt(isobar_err_buff)/isobar_buff;
+	cout<<(isys?"zr\t":"ru\t")<<ncoll[isys][i]<<"\t"<<npart[isys][i]<<"\t"<<raa_5GeV[isys][i]<<"\t"<<raa_sys_5GeV[isys][i]<<"\t"<<raa_err_5GeV[isys][i]<<endl;
 	raa_err_5GeV[isys][i]*=raa_5GeV[isys][i];
 	
 	npart_width[isys][i]=0.03*npart[isys][i];
@@ -156,6 +155,13 @@ TGraphErrors* mod_dau=new TGraphErrors(2,dau_npart,dau_mod_5GeV,dau_npart_err,da
 
 cout<<"d+Au plot created."<<endl;
 
+double pAu_npart[1]={6.47366};
+double pAu_raa[1]={1.30938};
+double pAu_npart_err[1]={0};
+double pAu_raa_err[1]={0.14197};
+TGraphErrors* pAu_incl=new TGraphErrors(1,pAu_npart,pAu_raa,pAu_npart_err,pAu_raa_err);
+
+
 TH1D* plot_displace=(TH1D*)nominal[0]->unfold_spec[0]->Clone();
 for(int i=1;i<=plot_displace->GetNbinsX();i++){
     plot_displace->SetBinContent(i,-0.2);
@@ -169,7 +175,7 @@ compile_raa->Draw();
 compile_raa->cd();
 compile_raa->SetTopMargin(0.02);
 compile_raa->SetRightMargin(0.02);
-double compile_xmin=6;
+double compile_xmin=5;
 double compile_xmax=375;
 TH1D* compile_dummy=new TH1D("comp_dummy","",200,compile_xmin,compile_xmax);
 compile_dummy->GetXaxis()->SetRangeUser(compile_xmin,compile_xmax);
@@ -188,9 +194,9 @@ delete compile_dummy;
 prelim_tag.SetTextAlign(23);
 prelim_tag.SetTextSize(0.04);
 prelim_tag.SetNDC();
-prelim_tag.DrawLatex(0.45,0.24,"STAR #bf{#it{Preliminary}}");
-prelim_tag.DrawLatex(0.45,0.20,"#bf{#sqrt{s_{NN}}=200 GeV}");
-prelim_tag.DrawLatex(0.45,0.15,"#bf{(h^{+}+h^{-})/2  p_{T} > 5.1 GeV/#it{c}}");
+prelim_tag.DrawLatex(0.32,0.24,"STAR #bf{#it{Preliminary}}");
+prelim_tag.DrawLatex(0.32,0.20,"#bf{#sqrt{s_{NN}}=200 GeV}");
+prelim_tag.DrawLatex(0.32,0.15,"#bf{(h^{+}+h^{-})/2  p_{T} > 5.1 GeV/#it{c}}");
 pp_err_buff=sqrt(pp_err_buff*pp_err_buff+3.5*3.5/900);
 TBox* pp_errbox=new TBox(compile_xmax-20,1-pp_err_buff,compile_xmax,1+pp_err_buff);
 pp_errbox->SetFillColor(15);
@@ -202,7 +208,7 @@ TGraphErrors* pion_cucu=cucu_pion();
 float width=2;
 mod_auau->SetLineColor(12);
 mod_auau->SetMarkerColor(12);
-mod_auau->SetMarkerSize(2);
+mod_auau->SetMarkerSize(1.5);
 mod_auau->SetLineWidth(width);
 mod_auau->GetXaxis()->SetTitle("#langle N_{part} #rangle");
 mod_auau->GetYaxis()->SetTitle("R_{AA}");
@@ -237,6 +243,12 @@ mod_dau->SetLineWidth(width);
 mod_dau->SetMarkerStyle(25);
 mod_dau->SetMarkerSize(1.5);
 
+pAu_incl->SetLineColor(kMagenta+1);
+pAu_incl->SetMarkerColor(kMagenta+1);
+pAu_incl->SetLineWidth(width);
+pAu_incl->SetMarkerStyle(34);
+pAu_incl->SetMarkerSize(2);
+
 mod_auau->SetLineWidth(width);
 integrated_raa[0]->SetLineWidth(width+1);
 integrated_raa[1]->SetLineWidth(width+1);
@@ -244,7 +256,7 @@ integrated_raa[0]->SetMarkerSize(2);
 integrated_raa[1]->SetMarkerSize(2);
 pion_cucu->SetLineWidth(width);
 
-TLegend* lg_compile=new TLegend(0.12,0.74,0.39,0.91);
+TLegend* lg_compile=new TLegend(0.16,0.74,0.42,0.91);
 lg_compile->AddEntry(integrated_raa[0],"Ru+Ru");
 lg_compile->AddEntry(integrated_raa[1],"Zr+Zr");
 lg_compile->AddEntry(pp_errbox,"pp uncertainty","f");
@@ -262,10 +274,16 @@ l->Draw("same");
 
 prelim_tag.DrawLatex(0.32,0.95,"#bf{Data}");
 
+pAu_incl->Draw("samep");
+
+TLegend* lg_pau=new TLegend(0.42,0.854,0.66,0.91);
+lg_pau->AddEntry(pAu_incl,"p+Au");
+lg_pau->SetBorderSize(0);
+lg_pau->Draw();
 compile_raa->SaveAs(Form("prelim_plots/raa_summary_0_%ibin.pdf",ncent));
+cin>>buf_char;
 
-
-TLegend* lg_compare=new TLegend(0.39,0.74,0.66,0.91);
+TLegend* lg_compare=new TLegend(0.42,0.70,0.66,0.854);
 lg_compare->AddEntry(mod_auau,"Au+Au");
 lg_compare->AddEntry(mod_dau,"d+Au");
 lg_compare->AddEntry(pion_cucu,"Cu+Cu #frac{#pi^{+}+#pi^{-}}{2}");
@@ -276,6 +294,7 @@ lg_compare->Draw();
 
 mod_auau->Draw("samep");
 mod_dau->Draw("samep");
+pAu_incl->Draw("samep");
 pion_cucu->Draw("samep");
 
 
@@ -295,6 +314,41 @@ integrated_raa[0]->Draw("samep");
 integrated_raa[1]->Draw("samep");
 
 compile_raa->SaveAs(Form("prelim_plots/raa_summary_1_%ibin.pdf",ncent));
+cin>>buf_char;
+
+
+float factor=-log(5)/pow(400,2./3);
+TF1 *vitev = new TF1("vitev","exp([0]*pow(x,2./3))",2,400);
+vitev->SetParameter(0,factor);
+vitev->SetLineColor(kBlack);
+vitev->Draw("same");
+
+TGraph** wilke_theory=wilke_npart_raa();
+wilke_theory[0]->SetLineColor(kBlue+1);
+wilke_theory[0]->SetLineWidth(2);
+wilke_theory[1]->SetLineColor(kRed+1);
+wilke_theory[1]->SetLineWidth(2);
+wilke_theory[0]->SetLineStyle(2);
+wilke_theory[1]->SetLineStyle(2);
+wilke_theory[0]->SetMarkerStyle(116);
+wilke_theory[1]->SetMarkerStyle(120);
+wilke_theory[0]->SetMarkerColor(kBlue+1);
+wilke_theory[1]->SetMarkerColor(kRed+1);
+wilke_theory[0]->SetMarkerSize(1);
+wilke_theory[1]->SetMarkerSize(1);
+wilke_theory[0]->Draw("samepl");
+wilke_theory[1]->Draw("samepl");
+
+
+TLegend* lg_theory=new TLegend(0.48,0.12,0.72,0.3);
+lg_theory->AddEntry(vitev,"Vitev R_{AA} #propto N_{part}^{2/3}");
+lg_theory->AddEntry(wilke_theory[0],"Trajectum Ru+Ru");
+lg_theory->AddEntry(wilke_theory[1],"Trajectum Zr+Zr");
+lg_theory->SetBorderSize(0);
+lg_theory->Draw();
+
+compile_raa->SaveAs(Form("prelim_plots/raa_summary_thy_%ibin.pdf",ncent));
+cin>>buf_char;
 
 
 
@@ -341,8 +395,8 @@ if(get_nhard){
   integrated_raa[0]->Draw("samep");
   integrated_raa[1]->Draw("samep");
   compile_raa->SaveAs(Form("prelim_plots/raa_summary_nhard_%ibin.pdf",ncent));
+  cin>>buf_char;
 }
-
 
 bool get_pythia=true;
 if(get_pythia){
@@ -364,9 +418,8 @@ if(get_pythia){
   integrated_raa[1]->Draw("samep");
 
   compile_raa->SaveAs(Form("prelim_plots/raa_summary_pythia_%ibin.pdf",ncent));
+  cin>>buf_char;
 }
-
-
 
 
 bool get_phenix=true;

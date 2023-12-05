@@ -23,5 +23,6 @@ smear_key=\"_smear\"
 
 done
 
-root -l  outhist_hgpythia.C\(\"outhist_ru_2_3_${ncent}bin.root\",\"outhist_zr_2_3_${ncent}bin.root\",\"systematics_ru_2_3_${ncent}bin.root\",\"systematics_zr_2_3_${ncent}bin.root\",${cent_in}\)
-
+#root -l  outhist_hgpythia.C\(\"outhist_ru_2_3_${ncent}bin.root\",\"outhist_zr_2_3_${ncent}bin.root\",\"systematics_ru_2_3_${ncent}bin.root\",\"systematics_zr_2_3_${ncent}bin.root\",${cent_in}\)
+root -l  outhist_hgpythia_isaac.C\(\"outhist_ru_2_3_${ncent}bin.root\",\"outhist_zr_2_3_${ncent}bin.root\",\"systematics_ru_2_3_${ncent}bin.root\",\"systematics_zr_2_3_${ncent}bin.root\",${cent_in}\)
+# root -l  outhist_previous.C

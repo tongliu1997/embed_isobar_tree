@@ -84,6 +84,12 @@ for(int isys=0;isys<2;isys++){
     TH1D* raw_copy[ncent];
     for(int i=0;i<ncent;i++){
 	raw_copy[i]=(TH1D*)nominal[isys]->raw_spec[i]->Clone();
+	double inv_yield=0;
+   	for(int ibin=1;ibin<=raw_copy[i]->GetNbinsX();ibin++){
+	    inv_yield+=6.28*raw_copy[i]->GetBinContent(ibin)*raw_copy[i]->GetBinWidth(ibin)*(raw_copy[i]->GetBinLowEdge(ibin)+0.5*raw_copy[i]->GetBinWidth(ibin));
+	    cout<<raw_copy[i]->GetBinContent(ibin)<<"\t"<<raw_copy[i]->GetBinWidth(ibin)<<"\t"<<raw_copy[i]->GetBinLowEdge(ibin)<<"\t"<<inv_yield<<endl;
+ 	}
+	cout<<"Raw "<<sys<<"\t"<<(i?Form("%i%%-%i%%",bins[i],bins[i+1]):"0%-10%")<<"\t"<<inv_yield*2<<"\t"<<inv_yield/ncoll[isys][i]<<endl;
     	raw_copy[i]->Scale(1.0/pow(5,i));
 //    	raw_copy[i]->SetTitle("");
 	const string sysname=isys?"Zr":"Ru";
@@ -91,7 +97,7 @@ for(int isys=0;isys<2;isys++){
     	raw_copy[i]->GetXaxis()->SetRangeUser(0.1,30);
     	raw_copy[i]->GetYaxis()->SetRangeUser(rawmin,rawmax);
     	raw_copy[i]->SetXTitle("p_{T} (GeV/c)");
-     	if(isys==0)raw_copy[i]->SetYTitle("#frac{1}{2#pi p_{T} } #frac{d^{2} N}{d p_{T} d #eta}");
+     	if(isys==0)raw_copy[i]->SetYTitle("#frac{1}{N_{ev} p_{T} } #frac{d^{3} N}{d p_{T} d #eta d #phi}");
 	else{
 	    raw_copy[i]->GetYaxis()->SetLabelSize(0);
 	    raw_copy[i]->GetYaxis()->SetLabelOffset(100);
@@ -102,6 +108,7 @@ for(int isys=0;isys<2;isys++){
 	raw_copy[i]->SetMarkerSize(marker_size);
 	raw_copy[i]->SetLineColor(colors[i]);
 	raw_copy[i]->SetMarkerColor(colors[i]);
+	raw_copy[i]->SetBarOffset(bar_offset*i);
     	raw_copy[i]->Draw("same");
     	if(isys)lg->AddEntry(raw_copy[i],i?Form("%i%%-%i%% / 5^%i",bins[i],bins[i+1],i):"0%-10%");
     }
@@ -131,17 +138,26 @@ for(int isys=0;isys<2;isys++){
 
     double unfold_ymax=nominal[isys]->unfold_spec[0]->GetBinContent(4)*2;
     double unfold_ymin=nominal[isys]->unfold_spec[ncent-1]->GetBinContent(nbins-3)/pow(5,ncent-1)/2;
-    TLegend* lg_unfold=new TLegend(0.55,0.6,0.84,0.98);
+    TLegend* lg_unfold=new TLegend(0.40,0.55,0.84,0.93);
     TH1D* unfold_copy[ncent];
     for(int i=0;i<ncent;i++){
 	
     	unfold_copy[i]=(TH1D*)nominal[isys]->unfold_spec[i]->Clone();
+	double inv_yield=0;
+   	for(int ibin=1;ibin<=unfold_copy[i]->GetNbinsX();ibin++){
+//	    cout<<unfold_copy[i]->GetBinContent(ibin)<<"\t"<<unfold_copy[i]->GetBinWidth(ibin)<<"\t"<<unfold_copy[i]->GetBinLowEdge(ibin)<<endl;
+	    inv_yield+=6.28*unfold_copy[i]->GetBinContent(ibin)*unfold_copy[i]->GetBinWidth(ibin)*(unfold_copy[i]->GetBinLowEdge(ibin)+0.5*unfold_copy[i]->GetBinWidth(ibin));
+ 	}
+	cout<<"Unfolded "<<sys<<"\t"<<(i?Form("%i%%-%i%%",bins[i],bins[i+1]):"0%-10%")<<"\t"<<inv_yield*2<<"\t"<<inv_yield/ncoll[isys][i]<<endl;
     	unfold_copy[i]->Scale(1.0/pow(5,i));
     	unfold_copy[i]->GetXaxis()->SetRangeUser(0,20);
     	unfold_copy[i]->GetYaxis()->SetRangeUser(unfoldmin,unfoldmax);
     	unfold_copy[i]->SetTitle(Form("%s+%s",sys.c_str(),sys.c_str()));
     	unfold_copy[i]->SetXTitle("p_{T} (GeV/c)");
-    	if(isys==0)unfold_copy[i]->SetYTitle("#frac{1}{2#pi p_{T}} #frac{d^{2} N}{d p_{T} d #eta}");
+    	if(isys==0){
+	    unfold_copy[i]->SetYTitle("#frac{1}{N_{ev} p_{T}} #frac{d^{3} N}{d p_{T} d #eta d #phi}");
+    	    unfold_copy[i]->GetYaxis()->SetTitleSize(0.04);
+	}
 	else {
 	    unfold_copy[i]->GetYaxis()->SetLabelSize(0);
 	    unfold_copy[i]->GetYaxis()->SetLabelOffset(100);
@@ -151,13 +167,22 @@ for(int isys=0;isys<2;isys++){
 	unfold_copy[i]->SetMarkerSize(marker_size);
 	unfold_copy[i]->SetMarkerColor(colors[i]);
 	unfold_copy[i]->SetLineColor(colors[i]);
+	unfold_copy[i]->SetBarOffset(bar_offset*i);
     	unfold_copy[i]->Draw("same p0");
-    	lg_unfold->AddEntry(unfold_copy[i],i?Form("%i%%-%i%% / 5^%i",bins[i],bins[i+1],i):"0%-10%");
+    	if(i==0)lg_unfold->AddEntry(unfold_copy[i],"0%-10%");
+	else if(i==1) lg_unfold->AddEntry(unfold_copy[i],"10%-20% / 5");
+	else lg_unfold->AddEntry(unfold_copy[i],Form("%i%%-%i%% / 5^%i",bins[i],bins[i+1],i));
     }
   if(isys){lg_unfold->SetBorderSize(0);lg_unfold->Draw();}
 }
-
-c[1]->SaveAs(Form("prelim_plots/UnfoldSpec_%i.pdf",ncent));
+c[1]->cd(1);
+prelim_tag.SetTextAlign(23);
+prelim_tag.SetTextSize(0.05);
+prelim_tag.SetNDC();
+prelim_tag.DrawLatex(0.7,0.85,"STAR #bf{#it{Preliminary}}");
+prelim_tag.DrawLatex(0.7,0.78,"Isobar #sqrt{s_{NN}}=200 GeV");
+prelim_tag.DrawLatex(0.7,0.7,"(h^{+}+h^{-})/2");
+c[1]->SaveAs(Form("prelim_plots/Isobar_UnfoldSpec_%i.pdf",ncent));
 
 
 // Raa
@@ -236,6 +261,7 @@ for(int isys=0;isys<2;isys++){
     	double xerr[nbins-8];
     	for(int ibin=4;ibin<=nbins-5;ibin++){
 	    xcent[ibin-4]=nominal[isys]->unfold_spec[0]->GetBinCenter(ibin)+bar_offset*i*nominal[isys]->unfold_spec[0]->GetBinWidth(ibin);
+	    //xcent[ibin-4]=nominal[isys]->unfold_spec[0]->GetBinCenter(ibin);
 	    xerr[ibin-4]=0.05;
     	}	
 
@@ -245,7 +271,7 @@ for(int isys=0;isys<2;isys++){
 //    	unfold_raa[i]=(TH1D*)raw_spec[isys][i]->Clone();
 
     	unfold_raa[i]->SetName(Form("%s_raa_%i_%i",sys.c_str(),bins[i],bins[i+1]));
-	cout<<sys<<" Npart= "<<npart[isys][i]<<"\t Ncoll= "<<ncoll[isys][i]<<endl; 
+	cout<<sys<<"\t"<<(i?Form("%i%%-%i%%",bins[i],bins[i+1]):"0%-10%")<<" Npart= "<<npart[isys][i]<<"\t Ncoll= "<<ncoll[isys][i]<<endl; 
    	unfold_raa[i]->Scale(1.0/ncoll[isys][i]);
     	unfold_raa[i]->SetTitle(Form("%s+%s",sys.c_str(),sys.c_str()));
     	unfold_raa[i]->Divide(pp_hist_noerr);
@@ -267,7 +293,7 @@ for(int isys=0;isys<2;isys++){
 	    yerr[j-4]*=ycent[j-4];
 	}
 	raa_sys[i]=new TGraphErrors(nbins-8,xcent,ycent,xerr,yerr);
-
+	raa_sys[i]->SetName(Form("%s_raa_sys_%i_%i",sys.c_str(),bins[i],bins[i+1]));
  
 //        raa_sys[i]=(TH1D*)unfold_raa[i]->Clone();
 
@@ -288,6 +314,7 @@ for(int isys=0;isys<2;isys++){
 //	raa_sys[i]->SetBarOffset(0.05*i)
 	raa_sys[i]->Draw("s=0.5 same");
     	unfold_raa[i]->Draw("same e ");
+	
     	lg_raa->AddEntry(unfold_raa[i],Form("%i%%-%i%%",bins[i],bins[i+1]));
 
 	double scaling_err=(is_qm_nominal)?error_nominal[isys][i]:nominal[isys]->nbin_err(i)/nominal[isys]->nbin(i);
@@ -310,6 +337,7 @@ for(int isys=0;isys<2;isys++){
     sys_label->Draw();
 	
 }
+
 
 c[2]->cd(1);
 
@@ -379,7 +407,7 @@ for(int isys=0;isys<2;isys++){
 
 c[3]->SaveAs(Form("prelim_plots/Rcp_%i.pdf",ncent));
 
-TCanvas* ru_vs_zr=new TCanvas("ru_vs_zr","",800,800);
+TCanvas* ru_vs_zr=new TCanvas("ru_vs_zr","",700,800);
 TH1D* species_ratio[3][ncent];
 //TH1D* nbin_ratio[ncent];
 //ru_vs_zr->Divide(1,ncent,0.3,0.01);
@@ -391,20 +419,22 @@ TH1D* species_ratio[3][ncent];
 //gPad->SetTopMargin(0.0);
 //gPad->SetBottomMargin(0.16);
 TPad* ratio_pads[3];
-ratio_pads[0]=new TPad("raw","",0,0.65,1,1);
+ratio_pads[0]=new TPad("raw","",0,0.57,1,1);
 ratio_pads[0]->SetBottomMargin(0);
 ratio_pads[0]->SetTopMargin(1./7);
-ratio_pads[1]=new TPad("ncoll","",0,0.35,1,0.65);
+ratio_pads[1]=new TPad("ncoll","",0,0.285,1,0.57);
 ratio_pads[1]->SetBottomMargin(0);
 ratio_pads[1]->SetTopMargin(0);
-ratio_pads[2]=new TPad("ncoll","",0,0,1,0.35);
+ratio_pads[2]=new TPad("ncoll","",0,0,1,0.285);
 ratio_pads[2]->SetBottomMargin(1./7);
 ratio_pads[2]->SetTopMargin(0);
 
 double xmin=0.1,xmax=9.99;
-TLegend* lg_ratio=new TLegend(0.2,0.15,0.8,0.5);
-lg_ratio->SetNColumns(2);
+TLegend* lg_ratio=new TLegend(0.15,0.66,0.75,0.96);
+lg_ratio->SetNColumns(3);
 
+
+TGraph** theory_plots=wilke_pt_raa();
 
 for(int i=0;i<ncent;i++){
     for(int p=0;p<3;p++){
@@ -432,39 +462,63 @@ for(int i=0;i<ncent;i++){
 	ru_vs_zr->cd();
 	ratio_pads[p]->Draw();
 	if(p)ratio_pads[p]->SetTickx();
+	ratio_pads[p]->SetTicky();
 	ratio_pads[p]->cd();
     if(i==0){
         TH1D* dummy_plot=new TH1D(Form("ratio_dummy_%i",p),"",10,xmin,xmax);
         dummy_plot->GetXaxis()->SetRangeUser(xmin,xmax); 
 	if(p==0) {
-	    dummy_plot->GetYaxis()->SetRangeUser(0.955,1.195);
-            dummy_plot->SetYTitle("Ru+Ru/Zr+Zr ratio");
-            dummy_plot->GetYaxis()->SetTitleSize(0.1);
-            dummy_plot->GetYaxis()->SetTitleOffset(0.45);
+	    dummy_plot->GetYaxis()->SetRangeUser(0.961,1.139);
+            dummy_plot->SetYTitle("Ru+Ru/Zr+Zr");
+            dummy_plot->GetYaxis()->SetTitleSize(0.09);
+            dummy_plot->GetYaxis()->SetLabelSize(0.06);
+            dummy_plot->GetYaxis()->SetTitleOffset(0.5);
 	}
-	if(p==1) dummy_plot->GetYaxis()->SetRangeUser(0.88,1.12);
-	if(p==2) {dummy_plot->GetYaxis()->SetRangeUser(0.88,1.12);
+	if(p==1) {
+		dummy_plot->GetYaxis()->SetRangeUser(0.941,1.059);
+    		dummy_plot->GetYaxis()->SetLabelSize(0.09);
+	}
+	if(p==2) {dummy_plot->GetYaxis()->SetRangeUser(0.941,1.059);
             dummy_plot->SetXTitle("p_{T} (GeV/c)");
             dummy_plot->GetXaxis()->SetLabelSize(0.08);
             dummy_plot->GetXaxis()->SetTitleOffset(0.5);
             dummy_plot->GetXaxis()->SetTitleSize(0.08);
+    	    dummy_plot->GetYaxis()->SetLabelSize(0.09);
 	}
 	dummy_plot->GetXaxis()->SetNdivisions(205);
-    	dummy_plot->GetYaxis()->SetNdivisions(203);
-    	dummy_plot->GetYaxis()->SetLabelSize(0.1);
+    	dummy_plot->GetYaxis()->SetNdivisions(210);
+    	dummy_plot->GetYaxis()->SetTickSize(0.01);
         dummy_plot->DrawClone("same");
 	delete dummy_plot;
     }
-    	species_ratio[p][i]->GetXaxis()->SetRangeUser(xmin,xmax);
-	species_ratio[p][i]->SetLineColor(colors[i]);
-	species_ratio[p][i]->SetMarkerColor(colors[i]);
- 	species_ratio[p][i]->Draw("same");
+    species_ratio[p][i]->GetXaxis()->SetRangeUser(xmin,xmax);
+    species_ratio[p][i]->SetLineColor(colors[i]);
+    species_ratio[p][i]->SetMarkerColor(colors[i]);
+    species_ratio[p][i]->Draw("same");
+    if(p==0){
+      theory_plots[i]->SetLineColor(colors[i]);
+      theory_plots[i]->SetMarkerColor(colors[i]);
+      theory_plots[i]->SetMarkerStyle(107);
+      theory_plots[i]->SetMarkerSize(1);
+      theory_plots[i]->SetLineWidth(2);
+      theory_plots[i]->SetLineStyle(2);
+      theory_plots[i]->Draw("samepl");
+      if(i==3){
+
+	TLegend* lg_tra=new TLegend(0.5,0.05,0.8,0.15);
+	lg_tra->AddEntry(theory_plots[i],"Trajectum");
+ 	lg_tra->SetBorderSize(0);
+	lg_tra->Draw();
+      }
+
     }
-    lg_ratio->AddEntry(species_ratio[2][i],Form("%i%%-%i%%",bins[i],bins[i+1]));
     
+  }
+  lg_ratio->AddEntry(species_ratio[2][i],Form("%i%%-%i%%",bins[i],bins[i+1]));
 
 }
-ratio_pads[2]->cd();
+
+ratio_pads[1]->cd();
 lg_ratio->SetBorderSize(0);
 lg_ratio->Draw();
 
@@ -475,9 +529,11 @@ for(int p=0;p<3;p++){
     lvs->DrawClone("same");
 }
 TLatex* vs_label[3];
-vs_label[0]=new TLatex(0.15,0.75,"per event yield");
-vs_label[1]=new TLatex(0.15,0.85,"#color[2]{ #LT N_{coll} #GT scaled}");
-vs_label[2]=new TLatex(0.15,0.85,"#color[4]{ #LT N_{part} #GT scaled}");
+vs_label[0]=new TLatex(0.15,0.1,"per event yield");
+vs_label[1]=new TLatex(0.15,0.1,"#LT N_{coll} #GT scaled");
+vs_label[1]->SetTextColor(kRed);
+vs_label[2]=new TLatex(0.15,0.3,"#LT N_{part} #GT scaled");
+vs_label[2]->SetTextColor(kBlue);
 for(int p=0;p<3;p++){
     vs_label[p]->SetTextAlign(12);
     vs_label[p]->SetTextFont(43);
@@ -488,320 +544,13 @@ for(int p=0;p<3;p++){
     vs_label[p]->Draw("same");
 }
 
-ratio_pads[1]->cd();
+ratio_pads[2]->cd();
 prelim_tag.SetTextAlign(23);
 prelim_tag.SetTextSize(0.1);
 prelim_tag.SetNDC();
-prelim_tag.DrawLatex(0.5,0.35,"STAR #bf{#it{Preliminary}}");
-prelim_tag.DrawLatex(0.5,0.25,"Isobar #sqrt{s_{NN}}=200 GeV");
-prelim_tag.DrawLatex(0.5,0.12,"(h^{+}+h^{-})/2");
+prelim_tag.DrawLatex(0.6,0.46,"STAR #bf{#it{Preliminary}}");
+prelim_tag.DrawLatex(0.6,0.36,"Isobar #sqrt{s_{NN}}=200 GeV");
+prelim_tag.DrawLatex(0.6,0.23,"(h^{+}+h^{-})/2");
 
 ru_vs_zr->SaveAs(Form("prelim_plots/ru_vs_zr_%i.pdf",ncent));
-/*
-double raa_5GeV[2][ncent],raa_err_5GeV[2][ncent],raa_sys_5GeV[2][ncent],npart_width[2][ncent];
-double raa_xbins[4]={0,5.1,10,30};
-double pp_buff=0,pp_err_buff=0;
-for(int i=1;i<=nbins;i++){
-    if(pp_hist->GetBinCenter(i)<5.1 || pp_hist->GetBinCenter(i)>10)continue;
-//    cout<<pp_hist->GetBinCenter(i)<<endl;
-     pp_buff+=(pp_hist->GetBinContent(i)*pp_hist->GetBinWidth(i));	    
-     pp_err_buff+=pow(pp_hist->GetBinError(i)*pp_hist->GetBinWidth(i),2);	    
-
-}
-
-cout<<"pp fractional error: "<<sqrt(pp_err_buff)/pp_buff<<endl;
-pp_err_buff=sqrt(pp_err_buff)/pp_buff;
-
-
-TGraphErrors* integrated_raa[2];
-TGraphErrors* sys_err_raa[2];
-
-for(int isys=0;isys<2;isys++){
-   for(int i=0;i<ncent;i++){
-	double isobar_buff=0,isobar_err_buff=0,isobar_sys_buff=0;	
-	for(int j=1;j<=nbins;j++){
-	    if(nominal[isys]->unfold_spec[i]->GetBinCenter(j)<5.1 || nominal[isys]->unfold_spec[i]->GetBinCenter(j)>10)continue;
-	    isobar_buff+=nominal[isys]->unfold_spec[i]->GetBinContent(j)*nominal[isys]->unfold_spec[i]->GetBinWidth(j);
-	    isobar_err_buff+=pow(nominal[isys]->unfold_spec[i]->GetBinError(j)*nominal[isys]->unfold_spec[i]->GetBinWidth(j),2);	    
-
-//	    cout<<"test "<<sys_plot[isys]->unfold_spec[i]->GetBinError(j)/sys_plot[isys]->unfold_spec[i]->GetBinContent(j)<<endl;
-	    isobar_sys_buff+=sys_plot[isys]->unfold_spec[i]->GetBinError(j)*sys_plot[isys]->unfold_spec[i]->GetBinWidth(j);
-	}
-	isobar_sys_buff/=isobar_buff;
- 	cout<<"test "<<isobar_sys_buff<<endl;
-	isobar_buff/=ncoll[isys][i];
-	isobar_sys_buff=sqrt(pow(isobar_sys_buff,2)+pow(nominal[isys]->nbin_err(i)/nominal[isys]->nbin(i),2));
-	isobar_sys_buff*=isobar_buff/pp_buff;
-	isobar_err_buff/=pow(ncoll[isys][i],2);
-	raa_5GeV[isys][i]=isobar_buff/pp_buff;
-	raa_sys_5GeV[isys][i]=isobar_sys_buff;
-	cout<<(isys?"zr\t":"ru\t")<<ncoll[isys][i]<<"\t"<<npart[isys][i]<<"\t"<<raa_5GeV[isys][i]<<"\t"<<raa_sys_5GeV[isys][i]/raa_5GeV[isys][i]<<"\t"<<nominal[isys]->nbin_err(i)/nominal[isys]->nbin(i)<<endl;
-
-
-//	raa_err_5GeV[isys][i]=sqrt(isobar_err_buff/(isobar_buff*isobar_buff)+pp_err_buff*pp_err_buff);
-	raa_err_5GeV[isys][i]=sqrt(isobar_err_buff)/isobar_buff;
-	raa_err_5GeV[isys][i]*=raa_5GeV[isys][i];
-	
-	npart_width[isys][i]=0.03*npart[isys][i];
-    }
-
-    integrated_raa[isys]=new TGraphErrors(ncent,npart[isys],raa_5GeV[isys],npart_err[isys],raa_err_5GeV[isys]);
-    sys_err_raa[isys]=new TGraphErrors(ncent,npart[isys],raa_5GeV[isys],npart_width[isys],raa_sys_5GeV[isys]);
-}
-
-TH1D** auau_hist=hist_auau();
-
-double auau_mod_5GeV[7],auau_err_5GeV[7];
-for(int i=0;i<7;i++){
-    if(i==1)continue;
-    double raa_buff=0,err_buff=0;	
-    for(int j=1;j<=nbins;j++){
-	if(auau_hist[i]->GetBinCenter(j)<5.1 || auau_hist[i]->GetBinCenter(j)>10)continue;
-	
-	raa_buff+=auau_hist[i]->GetBinContent(j)*auau_hist[i]->GetBinWidth(j);
-	err_buff+=pow(auau_hist[i]->GetBinError(j)*auau_hist[i]->GetBinWidth(j),2);
-    }
-	
-    raa_buff/=aa_nbin[i];
-    err_buff/=pow(aa_nbin[i],2);
-    int raabin=(i>1)?i-1:i;
-    auau_mod_5GeV[raabin]=raa_buff/pp_buff;
-//    auau_err_5GeV[raabin]=sqrt(err_buff/(raa_buff*raa_buff)+pp_err_buff*pp_err_buff);
-    auau_err_5GeV[raabin]=sqrt(err_buff)/raa_buff;
-    auau_err_5GeV[raabin]*=auau_mod_5GeV[raabin];
-//    cout<<raabin<<"\t"<<auau_npart[raabin]<<"\t"<<auau_npart_err[raabin]<<"\t"<<auau_mod_5GeV[raabin]<<"\t"<<auau_err_5GeV[raabin]<<endl;
-}
-
-
-TGraphErrors* mod_auau=new TGraphErrors(6,auau_npart,auau_mod_5GeV,auau_npart_err,auau_err_5GeV);
-
-cout<<"Au+Au plot created."<<endl;
-
-TH1D** dau_hist=hist_dau();
-
-double dau_mod_5GeV[2],dau_err_5GeV[2];
-for(int i=0;i<2;i++){
-    double raa_buff=0,err_buff=0;	
-    for(int j=1;j<=nbins;j++){
-	if(dau_hist[i]->GetBinCenter(j)<5.1 || dau_hist[i]->GetBinCenter(j)>10)continue;
-
-	raa_buff+=dau_hist[i]->GetBinContent(j)*dau_hist[i]->GetBinWidth(j);
-	err_buff+=pow(dau_hist[i]->GetBinError(j)*dau_hist[i]->GetBinWidth(j),2);
-    }
-	
-    raa_buff/=dau_nbin[i];
-    err_buff/=pow(dau_nbin[i],2);
-    dau_mod_5GeV[i]=raa_buff/pp_buff;
-    dau_err_5GeV[i]=sqrt(err_buff)/raa_buff;
-//   dau_err_5GeV[i]=sqrt(err_buff/(raa_buff*raa_buff)+pp_err_buff*pp_err_buff); 
-    dau_err_5GeV[i]*=dau_mod_5GeV[i];
-}
-
-TGraphErrors* mod_dau=new TGraphErrors(2,dau_npart,dau_mod_5GeV,dau_npart_err,dau_err_5GeV);
-
-cout<<"d+Au plot created."<<endl;
-
-TH1D* plot_displace=(TH1D*)nominal[0]->unfold_spec[0]->Clone();
-for(int i=1;i<=plot_displace->GetNbinsX();i++){
-    plot_displace->SetBinContent(i,-0.2);
-    plot_displace->SetBinError(i,0);
-}
-
-
-TCanvas* compile_raa=new TCanvas("compile_raa","",1000,800);
-compile_raa->SetLogx();
-compile_raa->Draw();
-compile_raa->cd();
-double compile_xmin=6;
-double compile_xmax=375;
-TH1D* compile_dummy=new TH1D("comp_dummy","",200,compile_xmin,compile_xmax);
-compile_dummy->GetXaxis()->SetRangeUser(compile_xmin,compile_xmax);
-compile_dummy->GetYaxis()->SetRangeUser(0,2);
-compile_dummy->SetXTitle("#LT N_{part} #GT");
-compile_dummy->GetXaxis()->SetTitleSize(0.06);
-compile_dummy->GetXaxis()->SetLabelSize(0.04);
-compile_dummy->GetXaxis()->SetTitleOffset(0.6);
-//compile_dummy->SetTitle("Hadron R_{AA} for p_{T} > 5 GeV");
-compile_dummy->SetYTitle("R_{AA}");
-compile_dummy->GetYaxis()->SetLabelSize(0.04);
-compile_dummy->GetYaxis()->SetTitleSize(0.06);
-compile_dummy->GetYaxis()->SetTitleOffset(0.65);
-compile_dummy->DrawClone();
-delete compile_dummy;
-prelim_tag.SetTextAlign(23);
-prelim_tag.SetTextSize(0.04);
-prelim_tag.SetNDC();
-prelim_tag.DrawLatex(0.45,0.24,"STAR #bf{#it{Preliminary}}");
-prelim_tag.DrawLatex(0.45,0.20,"#bf{Isobar #sqrt{s_{NN}}=200 GeV}");
-prelim_tag.DrawLatex(0.45,0.15,"#bf{(h^{+}+h^{-})/2  p_{T} > 5.1 GeV/#it{c}}");
-pp_err_buff=sqrt(pp_err_buff*pp_err_buff+3.5*3.5/900);
-TBox* pp_errbox=new TBox(compile_xmax-20,1-pp_err_buff,compile_xmax,1+pp_err_buff);
-pp_errbox->SetFillColor(15);
-pp_errbox->SetLineColor(15);
-pp_errbox->Draw("same");
-
-TGraphErrors** model=hgpythia_ref();
-//TGraphErrors** model=hgpythia_nhard();
-model[0]->SetFillStyle(3002);
-model[0]->SetFillColorAlpha(kBlue,0.5);
-model[1]->SetFillStyle(3001);
-model[1]->SetFillColorAlpha(kRed,0.5);
-
-model[0]->SetMarkerStyle(1);
-model[0]->SetMarkerSize(0);
-model[0]->SetLineWidth(0);
-model[1]->SetMarkerStyle(1);
-model[1]->SetMarkerSize(0);
-model[1]->SetLineWidth(0);
-
-TGraphErrors* pion_cucu=cucu_pion();
-
-float width=2;
-mod_auau->SetLineColor(12);
-mod_auau->SetMarkerColor(12);
-mod_auau->SetMarkerSize(2);
-mod_auau->SetLineWidth(width);
-mod_auau->GetXaxis()->SetTitle("#langle N_{part} #rangle");
-mod_auau->GetYaxis()->SetTitle("R_{AA}");
-mod_auau->SetTitle("Inclusive hadron R_{AA} for p_{T} > 5 GeV");
-mod_auau->SetMarkerStyle(32);
-integrated_raa[0]->SetLineColor(kBlue);//Ru
-integrated_raa[1]->SetLineColor(kRed);//Zr
-integrated_raa[0]->SetMarkerStyle(21);
-integrated_raa[1]->SetMarkerStyle(20);
-integrated_raa[0]->SetMarkerColor(kBlue);
-integrated_raa[1]->SetMarkerColor(kRed);
-
-sys_err_raa[0]->SetLineColor(kBlue);
-sys_err_raa[1]->SetLineColor(kRed);
-sys_err_raa[0]->SetMarkerSize(0);
-sys_err_raa[1]->SetMarkerSize(0);
-sys_err_raa[0]->SetLineWidth(1);
-sys_err_raa[1]->SetLineWidth(1);
-sys_err_raa[0]->SetFillColorAlpha(0,0);
-sys_err_raa[1]->SetFillColorAlpha(0,0);
-
-
-pion_cucu->SetLineColor(kMagenta+3);
-pion_cucu->SetMarkerStyle(27);
-pion_cucu->SetMarkerColor(kMagenta+3);
-pion_cucu->SetMarkerSize(1.5);
-pion_cucu->SetLineWidth(width);
-
-mod_dau->SetLineColor(kOrange+4);
-mod_dau->SetMarkerColor(kOrange+4);
-mod_dau->SetLineWidth(width);
-mod_dau->SetMarkerStyle(25);
-mod_dau->SetMarkerSize(1.5);
-
-TGraphErrors** phenix_uu_pi=phenix_uu_pion();
-phenix_set_style(phenix_uu_pi,26,kGreen+3,width);
-
-TGraphErrors** phenix_cuau_pi=phenix_cuau_pion();
-phenix_set_style(phenix_cuau_pi,28,kYellow+3,width);
-
-TGraphErrors** phenix_auau_pi=phenix_auau_pion();
-phenix_set_style(phenix_auau_pi,38,kViolet+3,width);
-
-mod_auau->SetLineWidth(width);
-integrated_raa[0]->SetLineWidth(width+1);
-integrated_raa[1]->SetLineWidth(width+1);
-integrated_raa[0]->SetMarkerSize(2);
-integrated_raa[1]->SetMarkerSize(2);
-pion_cucu->SetLineWidth(width);
-
-TLegend* lg_compile=new TLegend(0.12,0.7,0.35,0.85);
-lg_compile->AddEntry(integrated_raa[0],"Ru+Ru");
-lg_compile->AddEntry(integrated_raa[1],"Zr+Zr");
-lg_compile->AddEntry(pp_errbox,"pp uncertainty","f");
-lg_compile->SetBorderSize(0);
-lg_compile->Draw();
-sys_err_raa[0]->Draw("s=0.5 same");
-sys_err_raa[1]->Draw("s=0.5 same");
-integrated_raa[0]->Draw("samep");
-integrated_raa[1]->Draw("samep");
-
-
-TLine* l=new TLine(compile_xmin,1,compile_xmax,1);
-l->SetLineStyle(8);
-l->Draw("same");
-
-prelim_tag.DrawLatex(0.3,0.88,"#bf{Data}");
-
-compile_raa->SaveAs(Form("prelim_plots/raa_summary_0_%ibin.pdf",ncent));
-
-
-TLegend* lg_compare=new TLegend(0.35,0.7,0.65,0.85);
-lg_compare->AddEntry(mod_auau,"Au+Au");
-lg_compare->AddEntry(mod_dau,"d+Au");
-lg_compare->AddEntry(pion_cucu,"Cu+Cu #frac{#pi^{+}+#pi^{-}}{2}");
-
-lg_compare->SetBorderSize(0);
-lg_compare->Draw();
-
-mod_auau->Draw("samep");
-mod_dau->Draw("samep");
-pion_cucu->Draw("samep");
-
-
-//phenix_uu_pi[1]->Draw("s=0.5 same");
-//phenix_uu_pi[0]->Draw("samep");
-
-//phenix_auau_pi[1]->Draw("s=0.5 same");
-//phenix_auau_pi[0]->Draw("samep");
-
-//phenix_cuau_pi[1]->Draw("s=0.5 same");
-//phenix_cuau_pi[0]->Draw("samep");
-
-
-sys_err_raa[0]->Draw("s=0.5 same");
-sys_err_raa[1]->Draw("s=0.5 same");
-integrated_raa[0]->Draw("samep");
-integrated_raa[1]->Draw("samep");
-
-compile_raa->SaveAs(Form("prelim_plots/raa_summary_1_%ibin.pdf",ncent));
-
-
-TLegend* lg_model=new TLegend(0.65,0.72,0.89,0.85);
-lg_model->AddEntry(model[0],"Ru+Ru");
-lg_model->AddEntry(model[1],"Zr+Zr");
-lg_model->SetBorderSize(0);
-lg_model->Draw();
-lg_compare->Draw();
-prelim_tag.DrawLatex(0.75,0.88,"#bf{HG-PYTHIA}");
-
-
-
-model[0]->Draw("same e3");
-model[1]->Draw("same e3");
-
-sys_err_raa[0]->Draw("s=0.5 same");
-sys_err_raa[1]->Draw("s=0.5 same");
-integrated_raa[0]->Draw("samep");
-integrated_raa[1]->Draw("samep");
-compile_raa->SaveAs(Form("prelim_plots/raa_summary_%ibin.pdf",ncent));
-compile_raa->SaveAs(Form("prelim_plots/raa_summary_%ibin.C",ncent));
-
-
-prelim_tag.DrawLatex(0.82,0.55,"#bf{PHENIX #pi^{0}}");
-
-phenix_uu_pi[1]->Draw("s=0.5 same");
-phenix_uu_pi[0]->Draw("samep");
-
-phenix_auau_pi[1]->Draw("s=0.5 same");
-phenix_auau_pi[0]->Draw("samep");
-
-phenix_cuau_pi[1]->Draw("s=0.5 same");
-phenix_cuau_pi[0]->Draw("samep");
-
-TLegend* lg_phenix=new TLegend(0.75,0.28,0.88,0.48);
-lg_phenix->AddEntry(phenix_uu_pi[0],"U+U");
-lg_phenix->AddEntry(phenix_auau_pi[0],"Au+Au");
-lg_phenix->AddEntry(phenix_cuau_pi[0],"Cu+Au");
-lg_phenix->SetBorderSize(0);
-lg_phenix->Draw();
-
-compile_raa->SaveAs(Form("prelim_plots/raa_summary_phenix_%ibin.pdf",ncent));
-
-//*/
 }

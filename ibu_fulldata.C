@@ -6,12 +6,13 @@ float eta_start=-1,
 float eta_end=1,
 const int niter=2,
 const string embed_key="",
+const int charge=0,
 std::vector<int> cent_in={0,10,20,40,60,80}
 ){
 int iszr=0;
 if(system=="zr")iszr=1;
-const char* data_name=(iszr)?"/gpfs/loomis/project/caines/tl543/Isobar_Hist/zr_hadd.root":
-"/gpfs/loomis/project/caines/tl543/Isobar_Hist/ru_hadd.root";
+const char* data_name=(iszr)?"/gpfs/gibbs/project/caines/tl543/New_Isobar_Hist/zr_hadd.root":
+"/gpfs/gibbs/project/caines/tl543/New_Isobar_Hist/ru_hadd.root";
 //"/home/tl543/embed_isobar_tree/testout_noweight.root";
 
 
@@ -67,9 +68,9 @@ TH1F* trk_eff[niter+1][nstack];
 
 double nevts_diff[nstack],evcoll[nstack],evcoll_err[nstack],evpart[nstack],evpart_err[nstack];
 
-isobar_hist tester(data_name);
+isobar_hist tester(data_name,charge);
 //TH1D** hpt_diff_reverse=tester.stack(data_stack_bin,0,0);
-TH3D** hpt_diff_reverse=tester.stack_3d(data_stack_bin,0);
+TH3D** hpt_diff_reverse=tester.stack_3d(data_stack_bin,charge);
 
 for(int i=0;i<nstack;i++){
     hpt_diff[i]=(TH1D*)hpt_diff_reverse[nstack-1-i]->ProjectionX(Form("pt_stack_%i_%i",centrality[i+1],centrality[i]),etabin_start,etabin_end);
@@ -218,9 +219,10 @@ for(int iter=0;iter<=niter;iter++){
 }
 
 lg->Draw();
-
+string outname;
 //string system=(iszr)?"zr":"ru";
-string outname=Form("outhist_%s%s_%i_%i_%ibin.root",system.c_str(),embed_key.c_str(),etabin_start,etabin_end,nstack);
+if(niter==1) outname=Form("outhist_%s%s_%i_%i_%ibin_1iter.root",system.c_str(),embed_key.c_str(),etabin_start,etabin_end,nstack);
+else  outname=Form("outhist_%s%s_%i_%i_%ibin.root",system.c_str(),embed_key.c_str(),etabin_start,etabin_end,nstack);
 TFile* output=new TFile(outname.c_str(),"recreate");
 for(int i=0;i<nstack;i++){
     unfolded_rebin[niter][i]->SetName(Form("%s%s_unfolded_spec_%i_%i",system.c_str(),embed_key.c_str(),centrality[i+1],centrality[i]));

@@ -15,7 +15,7 @@
 #define PI_MINUS_ONE 2.141592653589793116
 #define PI0MASS2     0.0182196
 
-const int debug_level=0;
+const int debug_level=1;
 
 using namespace std;
 void random_trk(events& dat, string _options) {
@@ -67,6 +67,7 @@ void random_trk(events& dat, string _options) {
     TH1F* zdc_dist=new TH1F("ZDCx_distribution","ZDCx distribution",lumi_bins*50,lumi_bound[0],lumi_bound[lumi_bins]);
     TRandom3 ran_phi;
     ran_phi.SetSeed(0);
+    cout<<"Checkpoint 2"<<endl;
 
     // Run loop here:
     while (dat.next()) {
